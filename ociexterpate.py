@@ -16,10 +16,7 @@ if __name__ == "__main__":
 
     # at this point we should have a signer and some other stuff in the cfg object
 
-    clients = [
-        "datasafe",
-        "functions"
-    ]
+    clients = cfg.categories_to_delete
 
     for client in clients:
         logging.debug( "Importing {}".format(client))
@@ -34,4 +31,4 @@ if __name__ == "__main__":
         o = cls( cfg )
         logging.debug("OK")
 
-        o.findAndDeleteAllInCompartment(cfg.compartment)
+        o.findAndDeleteAllInCompartment()

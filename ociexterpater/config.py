@@ -11,6 +11,13 @@ class config:
 
     identity_client = None
 
+    categories_to_delete =  [
+                                "datasafe",
+                                "functions",
+                                "osms",
+                                "bastion",
+                                "nosql"
+                            ]
 
 
     def __init__(self):
@@ -32,6 +39,7 @@ class config:
         parser.add_argument('-skip_delete_compartment', action='store_true', default=False, dest='skip_delete_compartment', help='Skip Deleting the compartment at the end')
         parser.add_argument("-rg", dest='regions', help="Regions to delete comma separated (defaults to all subscribed regions)")
         parser.add_argument("-c", required=True, dest='compartment', help="top level compartment id to delete")
+        parser.add_argument("-o", dest="objects",help="Object catagories to work on. See docs for info")
         cmd = parser.parse_args()
         # if help:
         #     parser.print_help()
@@ -104,7 +112,9 @@ class config:
 
         # then get a list of the child compartments
         # I could do this recursively but I like to challenge myself sometimes
+        logging.debug("Getting child compartments")
         compartments_to_traverse = [ self.compartment ]
+        self.all_compartments.append( self.compartment )
         while compartments_to_traverse:
             for c in compartments_to_traverse:
                 compartments_to_traverse.remove(c)
@@ -118,6 +128,7 @@ class config:
                         compartments_to_traverse.append(x.id)
                         self.all_compartments.append(x.id)
 
+        logging.info("{} compartments will be exterpated".format(len(self.all_compartments)))
 
 
         # regions
@@ -130,10 +141,12 @@ class config:
         else:
             logging.debug("Regions not specified on command line.")
 
+        if cmd.objects:
+            self.categories_to_delete = cmd.objects.split(",")
 
 
 
-        logging.debug("Getting subscribed regions...")
+        logging.info("Getting subscribed regions...")
         regions = self.identity_client.list_region_subscriptions(self.ociconfig["tenancy"]).data
         for region in regions:
             if region.is_home_region:
@@ -142,5 +155,5 @@ class config:
             if not cmd.regions:
                 self.regions.append( region.region_name )
 
-        logging.debug( "Home region: {}".format( self.home_region ) )
-        logging.debug( "{} Regions to be exterpated: {}".format( len(self.regions), self.regions ) )
+        logging.info( "Home region: {}".format( self.home_region ) )
+        logging.info( "{} Regions to be exterpated: {}".format( len(self.regions), self.regions ) )
