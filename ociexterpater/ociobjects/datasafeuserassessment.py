@@ -11,7 +11,8 @@ class datasafeuserassessment( OCIObject ):
     to_delete = []
 
     def __init__(self, config):
-        super(datasafeuserassessment, self).__init__(config)
+        # super(datasafeuserassessment, self).__init__(config)
+        super().__init__(config)
         logging.debug( "in __init__" )
 
     def findAll(self, region, compartment):

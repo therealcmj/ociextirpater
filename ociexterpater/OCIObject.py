@@ -26,3 +26,5 @@ class OCIObject:
     def findAll(self, compartment):
         raise NotImplementedError()
 
+    def deleteAll(self):
+        raise NotImplementedError()

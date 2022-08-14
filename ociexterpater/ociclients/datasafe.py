@@ -164,11 +164,6 @@ class datasafe( OCIClient ):
 
     ]
 
-    # def __init__(self, config):
-    #     # super(datasafeuserassessment, self).__init__(config)
-    #     super().__init__(config)
-    #     logging.debug( "in __init__" )
-
     def findAndDeleteAllInCompartment(self, compartment):
         for object in self.objects:
             logging.debug("Singular name: {}".format(object["name_singular"]))
@@ -199,10 +194,3 @@ class datasafe( OCIClient ):
                             except Exception as e:
                                 logging.error( "Failed to delete {} because {}".format(e))
                                 logging.debug(e)
-                            # logging.info("Adding {} to delete list".format( o2.id ))
-                            # logging.debug(o2)
-                            # self.to_delete.append( {
-                            #     "id": o2.id,
-                            #     "region": region,
-                            #
-                            # })
