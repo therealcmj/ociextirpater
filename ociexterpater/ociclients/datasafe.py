@@ -1,5 +1,4 @@
 import logging
-import importlib
 
 import oci
 from ociexterpater.OCIClient import OCIClient
@@ -7,6 +6,7 @@ from ociexterpater.OCIClient import OCIClient
 class datasafe( OCIClient ):
     service_name = "Data Safe"
     clientClass = oci.data_safe.DataSafeClient
+    searches_are_recursive = True
 
     objects = [
         {
@@ -163,34 +163,3 @@ class datasafe( OCIClient ):
         },
 
     ]
-
-    def findAndDeleteAllInCompartment(self, compartment):
-        for object in self.objects:
-            logging.debug("Singular name: {}".format(object["name_singular"]))
-
-            for o in self.objects:
-                for region in self.clients:
-                    # self.clients is a dict from region name to the actual client for that region.
-                    logging.info( "Finding all {} in compartment {} in region {}".format( o["name_plural"], compartment, region))
-                    kwargs = o["kwargs_list"]
-                    os = oci.pagination.list_call_get_all_results(  getattr( (self.clients[region]), o["function_list"] ),
-                                                                    compartment,
-                                                                    **kwargs).data
-                    # compartment_id_in_subtree = True, access_level = "ACCESSIBLE").data
-                    logging.info( "Found {} {}".format( len( os ), o["name_plural"] ) )
-
-                    f = getattr((self.clients[region]), o["function_delete"])
-
-                    # we need to filter out any that are in state DELETED
-                    for o2 in os:
-                        logging.info( "{} with OCID {} / name '{}' is in state {}".format( o["name_singular"], o2.id, o2.display_name, o2.lifecycle_state ) )
-                        if o2.lifecycle_state == "DELETED":
-                            logging.debug( "skipping")
-                        else:
-                            logging.info("Deleting {}".format(o2.id))
-                            try:
-                                f( o2.id )
-
-                            except Exception as e:
-                                logging.error( "Failed to delete {} because {}".format(e))
-                                logging.debug(e)

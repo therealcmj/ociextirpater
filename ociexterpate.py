@@ -16,17 +16,9 @@ if __name__ == "__main__":
 
     # at this point we should have a signer and some other stuff in the cfg object
 
-    # let's get the compartment info and show it
-    ic = oci.identity.IdentityClient( cfg.ociconfig, signer=cfg.signer)
-    try:
-        compartment_name = ic.get_compartment(cfg.compartment,retry_strategy=oci.retry.DEFAULT_RETRY_STRATEGY).data.name
-        logging.info("Exterpating resources in compartment '{}' (OCID {})".format(compartment_name,cfg.compartment))
-    except:
-        logging.error("Failed to get compartment")
-        raise
-
     clients = [
-        "datasafe"
+        "datasafe",
+        "functions"
     ]
 
     for client in clients:

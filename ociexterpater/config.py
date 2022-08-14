@@ -2,11 +2,14 @@
 class config:
 
     compartment = None
+    all_compartments = []
     signer = None
     ociconfig = None
 
     home_region = None
     regions = []
+
+    identity_client = None
 
 
 
@@ -47,10 +50,6 @@ class config:
 
 
         # then process the other arguments
-
-        self.compartment = cmd.compartment
-        logging.debug( "Compartment set to '{}'".format( self.compartment ) )
-
         import oci
 
         # we construct the right signer here
@@ -89,6 +88,38 @@ class config:
                 logging.error(errTxt)
                 raise Exception(errTxt)
 
+        # Compartment config
+        self.compartment = cmd.compartment
+        logging.debug( "Root compartment set to '{}'".format( self.compartment ) )
+
+        # let's get the compartment info and show it
+        self.identity_client = oci.identity.IdentityClient(self.ociconfig, signer=self.signer)
+        try:
+            compartment_name = self.identity_client.get_compartment(self.compartment).data.name
+            logging.info(
+                "Exterpating resources in compartment '{}' (OCID {})".format(compartment_name, self.compartment))
+        except:
+            logging.error("Failed to get root compartment")
+            raise Exception
+
+        # then get a list of the child compartments
+        # I could do this recursively but I like to challenge myself sometimes
+        compartments_to_traverse = [ self.compartment ]
+        while compartments_to_traverse:
+            for c in compartments_to_traverse:
+                compartments_to_traverse.remove(c)
+                found = oci.pagination.list_call_get_all_results(self.identity_client.list_compartments, c).data
+                logging.debug( "Found {} child compartments".format( len(found) ) )
+                for x in found:
+                    logging.debug("Found compartment {} with lifecycle_state {}".format(x.id,x.lifecycle_state))
+                    if x.lifecycle_state == "DELETED":
+                        logging.debug("skipping")
+                    else:
+                        compartments_to_traverse.append(x.id)
+                        self.all_compartments.append(x.id)
+
+
+
         # regions
         requested_regions = None
         if cmd.regions:
@@ -100,9 +131,10 @@ class config:
             logging.debug("Regions not specified on command line.")
 
 
+
+
         logging.debug("Getting subscribed regions...")
-        idc = oci.identity.identity_client.IdentityClient(self.ociconfig)
-        regions = idc.list_region_subscriptions(self.ociconfig["tenancy"]).data
+        regions = self.identity_client.list_region_subscriptions(self.ociconfig["tenancy"]).data
         for region in regions:
             if region.is_home_region:
                 self.home_region = region.region_name
