@@ -25,31 +25,51 @@ if __name__ == "__main__":
         logging.error("Failed to get compartment")
         raise
 
-    # which objects to delete should be a command line argument
-    objs = [
-        "datasafeuserassessment"
+    clients = [
+        "datasafe"
     ]
 
-    for obj in objs:
-        logging.debug( "Importing {}".format(obj))
-        my_module = importlib.import_module("ociexterpater.ociobjects.%s" % obj)
-        print( my_module.__name__ )
+    for client in clients:
+        logging.debug( "Importing {}".format(client))
+        my_module = importlib.import_module("ociexterpater.ociclients.%s" % client)
+        logging.debug( "Module name: {}".format( my_module.__name__ ))
 
-        logging.debug( "Getting {}".format( obj ) )
-        cls = getattr( importlib.import_module("ociexterpater.ociobjects.%s" % obj), obj )
-        logging.debug( "Plural name for {} is {}".format( obj, cls.pluralname ) )
+        logging.debug( "Getting {}".format( client ) )
+        cls = getattr( importlib.import_module("ociexterpater.ociclients.%s" % client), client )
+        logging.debug( "Name for {} is {}".format( client, cls.service_name ) )
 
         logging.debug( "Instantiating" )
         o = cls( cfg )
         logging.debug("OK")
 
-        if o.isRegionalResource:
-            for region in cfg.regions:
-                o.findAll( region, cfg.compartment )
-                o.deleteAll()
-        else:
-            o.findAll( config.home_region, cfg.compartment )
-            o.deleteAll( config.home_region )
+        o.findAndDeleteAllInCompartment(cfg.compartment)
+
+
+    # # which objects to delete should be a command line argument
+    # objs = [
+    #     "datasafeuserassessment"
+    # ]
+    #
+    # for obj in objs:
+    #     logging.debug( "Importing {}".format(obj))
+    #     my_module = importlib.import_module("ociexterpater.ociobjects.%s" % obj)
+    #     print( my_module.__name__ )
+    #
+    #     logging.debug( "Getting {}".format( obj ) )
+    #     cls = getattr( importlib.import_module("ociexterpater.ociobjects.%s" % obj), obj )
+    #     logging.debug( "Plural name for {} is {}".format( obj, cls.pluralname ) )
+    #
+    #     logging.debug( "Instantiating" )
+    #     o = cls( cfg )
+    #     logging.debug("OK")
+    #
+    #     if o.isRegionalResource:
+    #         for region in cfg.regions:
+    #             o.findAll( region, cfg.compartment )
+    #             o.deleteAll()
+    #     else:
+    #         o.findAll( config.home_region, cfg.compartment )
+    #         o.deleteAll( )
 
     # # execute a search
     # search = oci.resource_search.ResourceSearchClient(cfg.ociconfig, signer=cfg.signer)
