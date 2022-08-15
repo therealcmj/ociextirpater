@@ -11,12 +11,15 @@ class config:
 
     identity_client = None
 
+    # we work through these sequentially in the order specificied
+    # that doesn't make much of a difference until you get to things like networking
     categories_to_delete =  [
+                                "adm",
+                                "bastion",
                                 "datasafe",
                                 "functions",
+                                "nosql",
                                 "osms",
-                                "bastion",
-                                "nosql"
                             ]
 
 

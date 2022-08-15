@@ -35,57 +35,74 @@ class OCIClient:
 
         logging.debug("{} {} clients initialized".format( len(self.clients), self.clientClass.__name__))
 
+    def findAllInCompartment(self, region, o, this_compartment, **kwargs):
+        # most of the find_ methods in the clients take the compartment as a param
+
+        # in that case o["function_list"] will be a string pointing to the function
+        if "function_list" in o:
+            os = oci.pagination.list_call_get_all_results(getattr((self.clients[region]), o["function_list"]),
+                                                          this_compartment,
+                                                          **kwargs).data
+        else:
+            logging.debug("Using method in class {}".format( self.__class__.__name__))
+            os = self.list_objects( o, region, this_compartment, **kwargs )
+
+        return os
+
     # I'm not sure if I want to take an argument or not
     def findAndDeleteAllInCompartment(self):
 
-        compartments_to_search = self.config.all_compartments
-        if self.searches_are_recursive:
-            compartments_to_search = self.config.compartment
-
         # in cases where the searches aren't recursive we have to search all of the child compartments too
+        compartments_to_search = self.config.all_compartments
 
+        if self.searches_are_recursive:
+            logging.debug("Searches for {} are recursive. No need to iterate all child compartments.".format( self.service_name ) )
+            compartments_to_search = [self.config.compartment]
 
-        for this_compartment in self.config.all_compartments:
+        for this_compartment in compartments_to_search:
             if this_compartment == self.config.compartment:
                 logging.debug( "findAndDeleteAllInCompartment on main compartment {}".format(this_compartment))
             else:
                 logging.debug( "findAndDeleteAllInCompartment on child compartment {}".format( this_compartment ))
 
+            # self.objects is all of the "objects" the Client exposes
             for object in self.objects:
                 logging.debug("Singular name: {}".format(object["name_singular"]))
 
-                for o in self.objects:
-                    for region in self.clients:
-                        # self.clients is a dict from region name to the actual client for that region.
-                        logging.info( "Finding all {} in compartment {} in region {}".format( o["name_plural"], this_compartment, region))
-                        kwargs = o["kwargs_list"]
+                for region in self.clients:
+                    # self.clients is a dict from region name to the actual client for that region.
+                    logging.info( "Finding all {} in compartment {} in region {}".format( object["name_plural"], this_compartment, region))
+                    kwargs = object["kwargs_list"]
 
-                        if type(o["function_list"]) == type("string"):
-                            os = oci.pagination.list_call_get_all_results(  getattr( (self.clients[region]), o["function_list"] ),
-                                                                            this_compartment,
-                                                                            **kwargs).data
+                    found_objects = self.findAllInCompartment( region, object, this_compartment, **kwargs )
+                    logging.info( "Found {} {}".format( len( found_objects ), object["name_plural"] ) )
+
+                    # we need to filter out any that are in state DELETED
+                    for found_object in found_objects:
+                        if "formatter" in object:
+                            logging.info( object["formatter"](found_object) )
                         else:
-                            raise NotImplementedError()
+                            logging.info( "{} with OCID {} / name '{}' is in state {}".format( object["name_singular"], found_object.id, found_object.display_name, found_object.lifecycle_state ) )
 
-                        logging.info( "Found {} {}".format( len( os ), o["name_plural"] ) )
+                        delete = False
+                        if "check2delete" in object:
+                            delete = object["check2delete"](found_object)
+                        elif found_object.lifecycle_state == "DELETED" or found_object.lifecycle_state == "DELETING":
+                            logging.debug( "skipping")
+                        else:
+                            delete = True
 
-                        f = getattr((self.clients[region]), o["function_delete"])
+                        if delete:
+                            logging.info("Deleting")
+                            try:
+                                if "function_delete" in object:
+                                    f = getattr((self.clients[region]), object["function_delete"])
+                                    f(found_object.id)
+                                    logging.debug("Successful deletion")
+                                else:
+                                    self.delete_object(object, region, found_object)
 
-                        # we need to filter out any that are in state DELETED
-                        for o2 in os:
-                            logging.info( "{} with OCID {} / name '{}' is in state {}".format( o["name_singular"], o2.id, o2.display_name, o2.lifecycle_state ) )
-
-                            # TODO:
-                            # if the object has a filter_func we need to use that instead of checking if it has a lifecycle state of DELETED or DELETING
-
-                            if o2.lifecycle_state == "DELETED" or o2.lifecycle_state == "DELETING":
-                                logging.debug( "skipping")
-                            else:
-                                logging.info("Deleting {}".format(o2.id))
-                                try:
-                                    f( o2.id )
-
-                                except Exception as e:
-                                    logging.error( "Failed to delete {} because {}".format(e))
-                                    logging.debug(e)
-
+                            except Exception as e:
+                                logging.error( "Failed to delete {} because {}".format( object["name_singular"], e.message))
+                                logging.info( "Object info: {}".format( found_object ))
+                                logging.debug(e)

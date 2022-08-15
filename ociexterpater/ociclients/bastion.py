@@ -15,6 +15,8 @@ class bastion( OCIClient ):
             "function_delete"  : "delete_bastion",
             "name_singular"    : "Bastion",
             "name_plural"      : "Bastions",
+            "formatter"        : lambda bastion: "Bastion with OCID {} / name '{}' is in state {}".format( bastion.id, bastion.name, bastion.lifecycle_state ),
+
             "children"         : [
                                     {
                                         "function_list": "list_sessions",
