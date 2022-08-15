@@ -29,6 +29,6 @@ if __name__ == "__main__":
 
         logging.debug( "Instantiating" )
         o = cls( cfg )
-        logging.debug("OK")
+        logging.debug("Instantiated OK")
 
         o.findAndDeleteAllInCompartment()

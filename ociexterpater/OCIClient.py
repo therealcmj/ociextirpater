@@ -51,7 +51,7 @@ class OCIClient:
 
     # I'm not sure if I want to take an argument or not
     def findAndDeleteAllInCompartment(self):
-
+        logging.info( "Finding and deleting all {}".format( self.service_name ) )
         # in cases where the searches aren't recursive we have to search all of the child compartments too
         compartments_to_search = self.config.all_compartments
 
@@ -112,3 +112,5 @@ class OCIClient:
                                 logging.error( "Failed to delete {} because {}".format( object["name_singular"], e))
                                 logging.info( "Object info: {}".format( found_object ))
                                 logging.debug(e)
+
+        logging.info("Cleanup of {} complete".format(self.service_name))

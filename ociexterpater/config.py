@@ -19,8 +19,10 @@ class config:
                                 "datasafe",
                                 "functions",
                                 "nosql",
-                                "objects",
+                                "objectstore",
                                 "osms",
+                                "vision",
+                                "anomaly",
                             ]
 
 
