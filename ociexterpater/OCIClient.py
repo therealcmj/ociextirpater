@@ -109,6 +109,6 @@ class OCIClient:
                                     self.delete_object(object, region, found_object)
 
                             except Exception as e:
-                                logging.error( "Failed to delete {} because {}".format( object["name_singular"], e.message))
+                                logging.error( "Failed to delete {} because {}".format( object["name_singular"], e))
                                 logging.info( "Object info: {}".format( found_object ))
                                 logging.debug(e)

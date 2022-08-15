@@ -19,6 +19,7 @@ class config:
                                 "datasafe",
                                 "functions",
                                 "nosql",
+                                "objects",
                                 "osms",
                             ]
 
