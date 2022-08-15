@@ -68,11 +68,11 @@ class OCIClient:
             else:
                 logging.debug( "findAndDeleteAllInCompartment on child compartment {}".format( this_compartment ))
 
-            # self.objects is all of the "objects" the Client exposes
-            for object in self.objects:
-                logging.debug("Singular name: {}".format(object["name_singular"]))
+            for region in self.clients:
+                # self.objects is all of the "objects" the Client exposes
+                for object in self.objects:
+                    logging.debug("Singular name: {}".format(object["name_singular"]))
 
-                for region in self.clients:
                     # self.clients is a dict from region name to the actual client for that region.
                     logging.info( "Finding all {} in compartment {} in region {}".format( object["name_plural"], this_compartment, region))
                     kwargs = object["kwargs_list"]
