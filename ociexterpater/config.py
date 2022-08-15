@@ -11,10 +11,13 @@ class config:
 
     identity_client = None
 
-    # we work through these sequentially in the order specificied
+    # we work through these sequentially in the order specified
     # that doesn't make much of a difference until you get to things like networking
     categories_to_delete =  [
                                 "adm",
+                                "analytics",
+                                "anomaly",
+                                "apigateway",
                                 "bastion",
                                 "datasafe",
                                 "functions",
@@ -22,7 +25,6 @@ class config:
                                 "objectstore",
                                 "osms",
                                 "vision",
-                                "anomaly",
                             ]
 
 
