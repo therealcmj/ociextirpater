@@ -74,7 +74,13 @@ class OCIClient:
                     logging.info( "Finding all {} in compartment {} in region {}".format( object["name_plural"], this_compartment, region))
                     kwargs = object["kwargs_list"]
 
-                    found_objects = self.findAllInCompartment( region, object, this_compartment, **kwargs )
+                    found_objects = []
+                    try:
+                        found_objects = self.findAllInCompartment( region, object, this_compartment, **kwargs )
+                    except Exception as e:
+                        logging.error("Unexpected exception caught")
+                        logging.error(e)
+
                     logging.info( "Found {} {}".format( len( found_objects ), object["name_plural"] ) )
 
                     # we need to filter out any that are in state DELETED
