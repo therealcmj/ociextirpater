@@ -1,3 +1,6 @@
+import logging
+import time
+
 import oci
 from ociexterpater.OCIClient import OCIClient
 
@@ -11,10 +14,41 @@ class analytics( OCIClient ):
             "function_list"      : "list_analytics_instances",
             "kwargs_list"        : {
                                    },
-            # this isn't enough - we need to stop it AND wait for it to be stopped before we can delete it
-            "function_predelete" : "stop_analytics_instance",
             "function_delete"    : "delete_analytics_instance",
             "name_singular"      : "Analytics instance",
             "name_plural"        : "Analytics instances",
         },
     ]
+
+    def predelete(self,object,region,found_object):
+        # we have pre-delete work to do in case d a route table
+        if object["name_singular"] == "Analytics instance":
+            if found_object.lifecycle_state == found_object.LIFECYCLE_STATE_INACTIVE:
+                logging.debug("Instance already stopped")
+                return
+
+            logging.info("Stopping {} ".format( object["name_singular"]))
+            f = getattr((self.clients[region]), "stop_analytics_instance")
+            f( found_object.id, **{})
+
+            f = getattr((self.clients[region]), "get_analytics_instance")
+            wait = 300
+            # then wait for it to stop
+            while wait:
+                logging.info("Waiting for instance to stop")
+                lifecycle_state = (f( found_object.id ).data).lifecycle_state
+                logging.debug("Current lifecycle state is {}".format( lifecycle_state ))
+
+
+                if lifecycle_state == found_object.LIFECYCLE_STATE_INACTIVE:
+                    logging.info( "Instance is stopped")
+                    return
+
+                logging.debug("Sleeping")
+                time.sleep(1)
+                wait -= 1
+
+            raise Exception("Failed to stop in allowed time")
+
+        pass
+

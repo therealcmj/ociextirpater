@@ -49,6 +49,9 @@ class OCIClient:
 
         return os
 
+    def predelete(self,object,region,found_object):
+        pass
+
     # I'm not sure if I want to take an argument or not
     def findAndDeleteAllInCompartment(self):
         logging.info( "Finding and deleting all {}".format( self.service_name ) )
@@ -99,33 +102,29 @@ class OCIClient:
                             delete = True
 
                         if delete:
-                            # in some cases there are things we need to do before deleting.
-                            #
-                            # for example we may need to stop a compute or analytics instance before deleting it
+                            try:
+                                # in some cases there are things we need to do before deleting.
+                                # for example we may need to stop a compute or analytics instance before deleting it
+                                # in those cases the predelete() function should do that
+                                self.predelete(object,region,found_object)
+                            except Exception as e:
+                                logging.error("Exception in pre-delete method. {} will not be deleted".format(object["name_singular"]))
+                                logging.info(e)
+                                delete = False
 
-                            delete = False
-                            if "function_predelete" in object:
-                                logging.debug("Pre-delete action required")
-                                f = getattr((self.clients[region]), object["function_predelete"])
+                            if delete:
+                                logging.info("Deleting")
                                 try:
-                                    f(found_object.id)
-                                    delete = True
-                                except:
-                                    logging.info("Failed to complete pre-delete action. {} will not be deleted".format( object["name_singular"] ))
+                                    if "function_delete" in object:
+                                        f = getattr((self.clients[region]), object["function_delete"])
+                                        f(found_object.id)
+                                        logging.debug("Successful deletion")
+                                    else:
+                                        self.delete_object(object, region, found_object)
 
-                                if delete:
-                                    logging.info("Deleting")
-                                    try:
-                                        if "function_delete" in object:
-                                            f = getattr((self.clients[region]), object["function_delete"])
-                                            f(found_object.id)
-                                            logging.debug("Successful deletion")
-                                        else:
-                                            self.delete_object(object, region, found_object)
-
-                                    except Exception as e:
-                                        logging.error( "Failed to delete {} because {}".format( object["name_singular"], e))
-                                        logging.info( "Object info: {}".format( found_object ))
-                                        logging.debug(e)
+                                except Exception as e:
+                                    logging.error( "Failed to delete {} because {}".format( object["name_singular"], e))
+                                    logging.info( "Object info: {}".format( found_object ))
+                                    logging.debug(e)
 
         logging.info("Cleanup of {} complete".format(self.service_name))
