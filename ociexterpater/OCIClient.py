@@ -99,18 +99,33 @@ class OCIClient:
                             delete = True
 
                         if delete:
-                            logging.info("Deleting")
-                            try:
-                                if "function_delete" in object:
-                                    f = getattr((self.clients[region]), object["function_delete"])
-                                    f(found_object.id)
-                                    logging.debug("Successful deletion")
-                                else:
-                                    self.delete_object(object, region, found_object)
+                            # in some cases there are things we need to do before deleting.
+                            #
+                            # for example we may need to stop a compute or analytics instance before deleting it
 
-                            except Exception as e:
-                                logging.error( "Failed to delete {} because {}".format( object["name_singular"], e))
-                                logging.info( "Object info: {}".format( found_object ))
-                                logging.debug(e)
+                            delete = False
+                            if "function_predelete" in object:
+                                logging.debug("Pre-delete action required")
+                                f = getattr((self.clients[region]), object["function_predelete"])
+                                try:
+                                    f(found_object.id)
+                                    delete = True
+                                except:
+                                    logging.info("Failed to complete pre-delete action. {} will not be deleted".format( object["name_singular"] ))
+
+                                if delete:
+                                    logging.info("Deleting")
+                                    try:
+                                        if "function_delete" in object:
+                                            f = getattr((self.clients[region]), object["function_delete"])
+                                            f(found_object.id)
+                                            logging.debug("Successful deletion")
+                                        else:
+                                            self.delete_object(object, region, found_object)
+
+                                    except Exception as e:
+                                        logging.error( "Failed to delete {} because {}".format( object["name_singular"], e))
+                                        logging.info( "Object info: {}".format( found_object ))
+                                        logging.debug(e)
 
         logging.info("Cleanup of {} complete".format(self.service_name))
