@@ -19,16 +19,12 @@ class dns( OCIClient ):
         {
             "formatter"          : lambda resolver_endpoint: "DNS Resolver Endpoint name '{}' in DNS Resolver {}".format( resolver_endpoint.name, resolver_endpoint.endpoint_id ),
             # "function_list"      : "list_resolver_endpoints",
-            "kwargs_list"        : {
-                                   },
             # "function_delete"    : "delete_resolver_endpoint",
             "name_singular"      : "DNS Resolver Endpoint",
             "name_plural"        : "DNS Resolver Endpoints",
         },
         {
             "function_list"      : "list_views",
-            "kwargs_list"        : {
-                                   },
             "function_delete"    : "delete_view",
             "name_singular"      : "DNS view",
             "name_plural"        : "DNS views",
@@ -36,8 +32,6 @@ class dns( OCIClient ):
 
         {
             "function_list"      : "list_zones",
-            "kwargs_list"        : {
-                                   },
             "function_delete"    : "delete_zone",
             "name_singular"      : "DNS Zone",
             "name_plural"        : "DNS Zones",

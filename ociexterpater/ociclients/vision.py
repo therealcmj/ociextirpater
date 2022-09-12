@@ -8,16 +8,12 @@ class vision( OCIClient ):
     objects = [
         {
             # "function_list"    : "list_models",
-            "kwargs_list"      : {
-                                 },
             "function_delete"  : "delete_model",
             "name_singular"    : "AI Vision Model",
             "name_plural"      : "AI Vision Models"
         },
         {
             # "function_list"    : "list_projects",
-            "kwargs_list"      : {
-                                 },
             "function_delete"  : "delete_project",
             "name_singular"    : "AI Vision project",
             "name_plural"      : "AI Vision projects"

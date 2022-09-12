@@ -12,8 +12,6 @@ class analytics( OCIClient ):
         {
             "formatter"          : lambda instance: "Analytics instance with OCID {} / name '{}' is in state {}".format( instance.id, instance.name, instance.lifecycle_state ),
             "function_list"      : "list_analytics_instances",
-            "kwargs_list"        : {
-                                   },
             "function_delete"    : "delete_analytics_instance",
             "name_singular"      : "Analytics instance",
             "name_plural"        : "Analytics instances",

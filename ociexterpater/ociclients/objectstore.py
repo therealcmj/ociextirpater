@@ -30,24 +30,18 @@ class objectstore( OCIClient ):
             "children"         : [
                                     {
                                         "function_list"  : "list_replication_policies",
-                                        "kwargs_list"    : {
-                                        },
                                         "function_delete": "delete_replication_policy",
                                         "name_singular"  : "Object Replication policy",
                                         "name_plural"    : "Object Replication policies",
                                     },
                                     {
                                         "function_list"  : "list_retention_rules",
-                                        "kwargs_list"    : {
-                                        },
                                         "function_delete": "delete_retention_rule",
                                         "name_singular"  : "Object Store Retention rule",
                                         "name_plural"    : "Object Store Retention rules",
                                     },
                                     {
                                         "function_list"  : "list_preauthenticated_requests",
-                                        "kwargs_list"    : {
-                                        },
                                         "function_delete": "delete_preauthenticated_request",
                                         "name_singular"  : "Object Store Pre-authenticated request",
                                         "name_plural"    : "Object Store Pre-authenticated requests",
@@ -55,16 +49,12 @@ class objectstore( OCIClient ):
 
                                     {
                                         "function_list"  : "list_multipart_uploads",
-                                        "kwargs_list"    : {
-                                        },
                                         "function_delete": "abort_multipart_upload",
                                         "name_singular"  : "Object Store multi-part upload",
                                         "name_plural"    : "Object Store multi-part uploads",
                                     },
                                     {
                                         "function_list"  : "list_objects",
-                                        "kwargs_list"    : {
-                                        },
                                         "function_delete": "delete_object",
                                         "name_singular"  : "Object",
                                         "name_plural"    : "Objects",

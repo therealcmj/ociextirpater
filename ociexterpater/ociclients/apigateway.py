@@ -8,8 +8,6 @@ class apigateway( OCIClient ):
     objects = [
         {
             "function_list"      : "list_gateways",
-            "kwargs_list"        : {
-                                   },
             "function_delete"    : "delete_gateway",
             "name_singular"      : "API Gateway",
             "name_plural"        : "API Gateways",

@@ -8,8 +8,6 @@ class nosql( OCIClient ):
     objects = [
         {
             "function_list"    : "list_tables",
-            "kwargs_list"      : {
-                                 },
             "function_delete"  : "delete_table",
             "name_singular"    : "No SQL table",
             "name_plural"      : "No SQL tables",

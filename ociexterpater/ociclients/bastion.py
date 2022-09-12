@@ -10,8 +10,6 @@ class bastion( OCIClient ):
     objects = [
         {
             "function_list"    : "list_bastions",
-            "kwargs_list"      : {
-                                 },
             "function_delete"  : "delete_bastion",
             "name_singular"    : "Bastion",
             "name_plural"      : "Bastions",

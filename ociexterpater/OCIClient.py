@@ -6,6 +6,8 @@ class OCIClient:
 
     clientClass = None
     clients = {}
+    compositeClientClass = None
+    compositeClients = {}
     isRegional = True
     searches_are_recursive = False
 
@@ -17,6 +19,11 @@ class OCIClient:
         rconfig["region"] = region
         logging.debug("New region in this OCI config dict: {}".format(rconfig["region"]))
         self.clients[region] = self.clientClass(rconfig)
+
+        # if there's a Composite Client class specified then initialize that too
+        if self.compositeClientClass:
+            logging.debug("Now initializing {} composite client for region {}".format(self.compositeClientClass.__name__, region))
+            self.compositeClients[region] = self.compositeClientClass( self.clients[region] )
 
     def __init__(self,config):
         logging.debug("OCIClient")
@@ -38,15 +45,20 @@ class OCIClient:
     def findAllInCompartment(self, region, o, this_compartment, **kwargs):
         # most of the find_ methods in the clients take the compartment as a param
 
-        # in that case o["function_list"] will be a string pointing to the function
-        if "function_list" in o:
-            os = oci.pagination.list_call_get_all_results(getattr((self.clients[region]), o["function_list"]),
-                                                          this_compartment,
-                                                          **kwargs).data
-        else:
-            logging.debug("Using method in class {}".format( self.__class__.__name__))
-            os = self.list_objects( o, region, this_compartment, **kwargs )
+        os = None
 
+        # if "list_objects" in self.__getattribute__():
+        if self.__getattribute__("list_objects"):
+            logging.debug("Using method in class {}".format( self.__class__.__name__))
+            try:
+                os = self.list_objects( o, region, this_compartment, **kwargs )
+                return os
+            except NotImplementedError:
+                logging.debug("Not implemented for that object - using {}".format( o["function_list"] ))
+
+        os = oci.pagination.list_call_get_all_results(getattr((self.clients[region]), o["function_list"]),
+                                                      this_compartment,
+                                                      **kwargs).data
         return os
 
     def predelete(self,object,region,found_object):
@@ -75,7 +87,10 @@ class OCIClient:
 
                     # self.clients is a dict from region name to the actual client for that region.
                     logging.info( "Finding all {} in compartment {} in region {}".format( object["name_plural"], this_compartment, region))
-                    kwargs = object["kwargs_list"]
+                    kwargs = {}
+
+                    if "kwargs_list" in object:
+                        kwargs = object["kwargs_list"]
 
                     found_objects = []
                     try:

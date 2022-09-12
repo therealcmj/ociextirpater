@@ -8,16 +8,12 @@ class adm( OCIClient ):
     objects = [
         {
             # "function_list"    : "list_vulnerability_audits",
-            "kwargs_list"      : {
-                                 },
             "function_delete"  : "delete_vulnerability_audit",
             "name_singular"    : "ADM Vulnerability Audit",
             "name_plural"      : "ADM Vulnerability Audits"
         },
         {
             # "function_list": "list_knowledge_bases",
-            "kwargs_list": {
-            },
             "function_delete": "delete_knowledge_base",
             "name_singular": "ADM Knowledge Base",
             "name_plural": "ADM Knowledge Bases"
