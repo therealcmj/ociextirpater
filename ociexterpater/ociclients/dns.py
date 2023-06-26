@@ -24,15 +24,18 @@ class dns( OCIClient ):
             "name_plural"        : "DNS Resolver Endpoints",
         },
         {
+            "formatter": lambda view: "DNS View name '{}' with id {} is in state {}".format(view.display_name, view.id, view.lifecycle_state),
             "function_list"      : "list_views",
+            "check2delete"       : lambda found: not found["is_protected"],
             "function_delete"    : "delete_view",
             "name_singular"      : "DNS view",
             "name_plural"        : "DNS views",
         },
 
         {
+            "formatter"          : lambda zone: "DNS Zone {} name '{}' of type {}".format( zone.id, zone.name, zone.type ),
             "function_list"      : "list_zones",
-            "function_delete"    : "delete_zone",
+            # "function_delete"    : "delete_zone",
             "name_singular"      : "DNS Zone",
             "name_plural"        : "DNS Zones",
         },
@@ -82,3 +85,6 @@ class dns( OCIClient ):
             return
 
         raise NotImplementedError
+
+    def check2delete(self,found):
+        pass

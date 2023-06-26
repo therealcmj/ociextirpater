@@ -5,6 +5,7 @@ class config:
     all_compartments = []
     signer = None
     ociconfig = None
+    threads = 1
 
     home_region = None
     regions = []
@@ -20,11 +21,20 @@ class config:
                                 "apigateway",
                                 "bastion",
                                 "datasafe",
+                                # "dbtools",
+                                "database",
+                                "dns",
                                 "functions",
                                 "nosql",
                                 "objectstore",
                                 "osms",
                                 "vision",
+                                "loadbalancers",
+                                "certificates",
+                                "compute",
+                                "computepool",
+                                "oke",
+                                "network",
                             ]
 
 
@@ -48,6 +58,7 @@ class config:
         parser.add_argument("-rg", dest='regions', help="Regions to delete comma separated (defaults to all subscribed regions)")
         parser.add_argument("-c", required=True, dest='compartment', help="top level compartment id to delete")
         parser.add_argument("-o", dest="objects",help="Object catagories to work on. See docs for info")
+        parser.add_argument("-t", dest="threads",default="1",help="Number of threads")
         cmd = parser.parse_args()
         # if help:
         #     parser.print_help()
@@ -68,6 +79,7 @@ class config:
         # then process the other arguments
         import oci
 
+        logging.info("Preparing signer")
         # we construct the right signer here
         if cmd.is_instance_principal:
             logging.debug("Authenticating with Instance Principal")
@@ -104,6 +116,8 @@ class config:
                 logging.error(errTxt)
                 raise Exception(errTxt)
 
+        logging.info("Signer prepared")
+
         # Compartment config
         self.compartment = cmd.compartment
         logging.debug( "Root compartment set to '{}'".format( self.compartment ) )
@@ -120,7 +134,7 @@ class config:
 
         # then get a list of the child compartments
         # I could do this recursively but I like to challenge myself sometimes
-        logging.debug("Getting child compartments")
+        logging.info("Getting child compartments")
         compartments_to_traverse = [ self.compartment ]
         self.all_compartments.append( self.compartment )
         while compartments_to_traverse:
@@ -130,11 +144,11 @@ class config:
                 logging.debug( "Found {} child compartments".format( len(found) ) )
                 for x in found:
                     logging.debug("Found compartment {} with lifecycle_state {}".format(x.id,x.lifecycle_state))
-                    if x.lifecycle_state == "DELETED":
-                        logging.debug("skipping")
-                    else:
+                    if x.lifecycle_state == "ACTIVE":
                         compartments_to_traverse.append(x.id)
                         self.all_compartments.append(x.id)
+                    else:
+                        logging.debug("skipping")
 
         logging.info("{} compartments will be exterpated".format(len(self.all_compartments)))
 

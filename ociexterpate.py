@@ -8,15 +8,19 @@ __requires__ = 'oci==2.78.0'
 
 if __name__ == "__main__":
 
-    logging.basicConfig(format='%(asctime)s %(levelname)7s %(module)s:%(funcName)s -> %(message)s', level=logging.INFO)
+    logging.basicConfig(format='%(asctime)s %(threadName)s %(levelname)7s %(module)s:%(funcName)s -> %(message)s', level=logging.INFO)
     logging.info("Starting up")
 
+    logging.info("Configuring...")
     from ociexterpater.config import config
     cfg = config()
+    logging.info("Configured")
 
     # at this point we should have a signer and some other stuff in the cfg object
 
     clients = cfg.categories_to_delete
+
+    logging.info("{} clients".format( len(clients)))
 
     for client in clients:
         logging.debug( "Importing {}".format(client))

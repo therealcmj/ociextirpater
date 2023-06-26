@@ -29,6 +29,7 @@ class OCIClient:
         logging.debug("OCIClient")
         self.config = config
 
+        logging.info("Initializing clients...")
         # if the service IS a regional service then we need one client for each region
         if self.isRegional:
             logging.debug( "Initializing regional OCI clients for {}".format( self.clientClass.__name__))
@@ -48,14 +49,16 @@ class OCIClient:
         os = None
 
         # if "list_objects" in self.__getattribute__():
-        if self.__getattribute__("list_objects"):
-            logging.debug("Using method in class {}".format( self.__class__.__name__))
+        # if self.__getattribute__("list_objects"):
+        if getattr(self, "list_objects", None):
+            logging.debug("Trying 'list_objects' method in class {}".format( self.__class__.__name__))
             try:
                 os = self.list_objects( o, region, this_compartment, **kwargs )
                 return os
             except NotImplementedError:
-                logging.debug("Not implemented for that object - using {}".format( o["function_list"] ))
+                logging.debug("Not implemented for object {} - using {} (this is OK)".format(  o["name_singular"], o["function_list"] ))
 
+        # logging.debug("Calling {}".format( o["function_list"]))
         os = oci.pagination.list_call_get_all_results(getattr((self.clients[region]), o["function_list"]),
                                                       this_compartment,
                                                       **kwargs).data
@@ -96,7 +99,7 @@ class OCIClient:
                     try:
                         found_objects = self.findAllInCompartment( region, object, this_compartment, **kwargs )
                     except Exception as e:
-                        logging.error("Unexpected exception caught")
+                        logging.error("Unexpected exception caught calling {}".format(object["function_list"]))
                         logging.error(e)
 
                     logging.info( "Found {} {}".format( len( found_objects ), object["name_plural"] ) )
@@ -108,10 +111,17 @@ class OCIClient:
                         else:
                             logging.info( "{} with OCID {} / name '{}' is in state {}".format( object["name_singular"], found_object.id, found_object.display_name, found_object.lifecycle_state ) )
 
+                        # Assume we're not supposed to delete
                         delete = False
-                        if "check2delete" in object:
+                        # if "check2delete" in found_object:
+                        if hasattr(found_object, "check2delete"):
                             delete = object["check2delete"](found_object)
-                        elif found_object.lifecycle_state == "DELETED" or found_object.lifecycle_state == "DELETING":
+                        # elif found_object.lifecycle_state == "DELETED" or found_object.lifecycle_state == "DELETING":
+                        elif ( hasattr( found_object, "lifecycle_state" ) and
+                               ( found_object.lifecycle_state == "DELETED"       or
+                                 found_object.lifecycle_state == "DELETING")     or
+                                 found_object.lifecycle_state == "TERMINATED"    or
+                                 found_object.lifecycle_state == "TERMINATING"   ) :
                             logging.debug( "skipping")
                         else:
                             delete = True

@@ -91,7 +91,9 @@ class objectstore( OCIClient ):
             # child objects:
             for child in oci_object["children"]:
                 logging.debug( "Listing {} in bucket {}".format( child["name_plural"], object.name ))
-                kwargs = child["kwargs_list"]
+                kwargs = {}
+                if hasattr( child, "kwargs_list"):
+                    kwargs = child["kwargs_list"]
                 xs = oci.pagination.list_call_get_all_results(  getattr((self.clients[region]), child["function_list"]),
                                                                 self.namespace,
                                                                 object.name,
@@ -106,7 +108,7 @@ class objectstore( OCIClient ):
                         df( self.namespace, object.name, obj.name )
                 else:
                     for x in xs:
-                        if child[""] == "Object Store multi-part upload":
+                        if child["name_singular"] == "Object Store multi-part upload":
                             df(self.namespace, object.name, x.id)
                         else:
                             df( self.namespace, object.name, x.id )
