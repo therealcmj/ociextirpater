@@ -15,6 +15,10 @@ class config:
     # we work through these sequentially in the order specified
     # that doesn't make much of a difference until you get to things like networking
     categories_to_delete =  [
+                                "cloudguard",
+                                "osms",
+                                "loganalytics",
+                                "loggging",
                                 "adm",
                                 "analytics",
                                 "anomaly",
@@ -23,6 +27,7 @@ class config:
                                 "datasafe",
                                 # "dbtools",
                                 "database",
+                                "nosql",
                                 "dns",
                                 "functions",
                                 "nosql",
@@ -34,8 +39,10 @@ class config:
                                 "compute",
                                 "computepool",
                                 "oke",
+                                "blockstorage",
                                 "network",
-                            ]
+                                "identity",
+    ]
 
 
     def __init__(self):
@@ -149,6 +156,7 @@ class config:
                         self.all_compartments.append(x.id)
                     else:
                         logging.debug("skipping")
+                logging.info("Found {} compartments so far".format( len(self.all_compartments)))
 
         logging.info("{} compartments will be exterpated".format(len(self.all_compartments)))
 

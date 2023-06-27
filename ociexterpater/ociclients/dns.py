@@ -33,7 +33,7 @@ class dns( OCIClient ):
         },
 
         {
-            "formatter"          : lambda zone: "DNS Zone {} name '{}' of type {}".format( zone.id, zone.name, zone.type ),
+            "formatter"          : lambda zone: "DNS Zone {} name '{}' of type {}".format( zone.id, zone.name, zone.zone_type ),
             "function_list"      : "list_zones",
             # "function_delete"    : "delete_zone",
             "name_singular"      : "DNS Zone",
