@@ -18,7 +18,7 @@ class config:
                                 "cloudguard",
                                 "osms",
                                 "loganalytics",
-                                "loggging",
+                                "ociloggging",
                                 "adm",
                                 "analytics",
                                 "anomaly",
@@ -40,7 +40,7 @@ class config:
                                 "computepool",
                                 "oke",
                                 "blockstorage",
-                                "network",
+                                # "network",
                                 "identity",
     ]
 

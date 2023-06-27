@@ -1,9 +1,11 @@
+import logging
 import oci
 from ociexterpater.OCIClient import OCIClient
 
-class logging( OCIClient ):
+class ocilogging( OCIClient ):
     service_name = "Logging"
     clientClass = oci.logging.LoggingManagementClient
+    compositeClientClass = oci.logging.LoggingManagementClientCompositeOperations
 
     objects = [
         {
@@ -25,4 +27,15 @@ class logging( OCIClient ):
     ]
 
     def predelete(self,object,region,found_object):
-        pass
+        if "Logging Group" == object["name_singular"]:
+            # then we need to delete the logs inside it first
+            lgid = found_object.id
+            logging.debug( "Getting logs in logging group {}".format(lgid))
+            logs = self.clients[region].list_logs(lgid)
+            logging.debug("Found {} logs in group".format(len(logs.data)))
+            for l in logs.data:
+                logging.debug("Deleting log id {}".format(l.id))
+                self.compositeClients[region].delete_log_and_wait_for_state(lgid,l.id,"SUCCEEDED")
+
+            # TODO: we actually need to wait for the log to be deleted before returning
+            # otherwise the Logging Group cannot be deleted
