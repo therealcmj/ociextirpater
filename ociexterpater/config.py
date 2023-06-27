@@ -18,7 +18,7 @@ class config:
                                 "cloudguard",
                                 "osms",
                                 "loganalytics",
-                                "ociloggging",
+                                "ocilogging",
                                 "adm",
                                 "analytics",
                                 "anomaly",
