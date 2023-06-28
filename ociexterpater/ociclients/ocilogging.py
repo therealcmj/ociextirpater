@@ -35,7 +35,4 @@ class ocilogging( OCIClient ):
             logging.debug("Found {} logs in group".format(len(logs.data)))
             for l in logs.data:
                 logging.debug("Deleting log id {}".format(l.id))
-                self.compositeClients[region].delete_log_and_wait_for_state(lgid,l.id,"SUCCEEDED")
-
-            # TODO: we actually need to wait for the log to be deleted before returning
-            # otherwise the Logging Group cannot be deleted
+                self.compositeClients[region].delete_log_and_wait_for_state(lgid,l.id,["SUCCEEDED"])
