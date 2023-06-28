@@ -9,7 +9,7 @@ class cloudguard( OCIClient ):
         {
             "function_list"      : "list_security_zones",
             "function_delete"    : "delete_security_zone",
-            "name_singular"      : "Sexurity Zone",
+            "name_singular"      : "Security Zone",
             "name_plural"        : "Security Zones",
         },
 
