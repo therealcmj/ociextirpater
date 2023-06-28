@@ -1,7 +1,7 @@
 import logging
 
 import oci
-from ociexterpater.OCIClient import OCIClient
+from ociextirpater.OCIClient import OCIClient
 
 class datasafe( OCIClient ):
     service_name = "Data Safe"

@@ -1,7 +1,7 @@
 import logging
 
 import oci
-from ociexterpater.OCIClient import OCIClient
+from ociextirpater.OCIClient import OCIClient
 
 class certificates( OCIClient ):
     service_name = "Certificates"

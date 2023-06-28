@@ -1,7 +1,7 @@
 import logging
 
 import oci
-from ociexterpater.OCIClient import OCIClient
+from ociextirpater.OCIClient import OCIClient
 
 class computepool( OCIClient ):
     service_name = "Compute Instance Pool"

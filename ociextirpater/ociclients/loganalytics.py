@@ -1,5 +1,5 @@
 import oci
-from ociexterpater.OCIClient import OCIClient
+from ociextirpater.OCIClient import OCIClient
 
 class loganalytics( OCIClient ):
     service_name = "Log Analytics"

@@ -1,5 +1,5 @@
 import oci
-from ociexterpater.OCIClient import OCIClient
+from ociextirpater.OCIClient import OCIClient
 
 class nosql( OCIClient ):
     service_name = "No SQL"

@@ -12,7 +12,7 @@ if __name__ == "__main__":
     logging.info("Starting up")
 
     logging.info("Configuring...")
-    from ociexterpater.config import config
+    from ociextirpater.config import config
     cfg = config()
     logging.info("Configured")
 
@@ -24,11 +24,11 @@ if __name__ == "__main__":
 
     for client in clients:
         logging.debug( "Importing {}".format(client))
-        my_module = importlib.import_module("ociexterpater.ociclients.%s" % client)
+        my_module = importlib.import_module("ociextirpater.ociclients.%s" % client)
         logging.debug( "Module name: {}".format( my_module.__name__ ))
 
         logging.debug( "Getting {}".format( client ) )
-        cls = getattr( importlib.import_module("ociexterpater.ociclients.%s" % client), client )
+        cls = getattr( importlib.import_module("ociextirpater.ociclients.%s" % client), client )
         logging.debug( "Name for {} is {}".format( client, cls.service_name ) )
 
         logging.debug( "Instantiating" )
