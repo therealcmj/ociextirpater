@@ -56,7 +56,7 @@ class OCIClient:
                 os = self.list_objects( o, region, this_compartment, **kwargs )
                 return os
             except NotImplementedError:
-                logging.debug("Not implemented for object {} - using {} (this is OK)".format(  o["name_singular"], o["function_list"] ))
+                logging.debug("Not implemented for object '{}' - using '{}()' (this is OK)".format(  o["name_singular"], o["function_list"] ))
 
         # logging.debug("Calling {}".format( o["function_list"]))
         os = oci.pagination.list_call_get_all_results(getattr((self.clients[region]), o["function_list"]),
@@ -111,10 +111,11 @@ class OCIClient:
                         else:
                             logging.info( "{} with OCID {} / name '{}' is in state {}".format( object["name_singular"], found_object.id, found_object.display_name, found_object.lifecycle_state ) )
 
+                        logging.debug( found_object )
+
                         # Assume we're not supposed to delete
                         delete = False
-                        # if "check2delete" in found_object:
-                        if hasattr(found_object, "check2delete"):
+                        if "check2delete" in object:
                             delete = object["check2delete"](found_object)
                         # elif found_object.lifecycle_state == "DELETED" or found_object.lifecycle_state == "DELETING":
                         elif ( hasattr( found_object, "lifecycle_state" ) and

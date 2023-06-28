@@ -26,7 +26,7 @@ class dns( OCIClient ):
         {
             "formatter": lambda view: "DNS View name '{}' with id {} is in state {}".format(view.display_name, view.id, view.lifecycle_state),
             "function_list"      : "list_views",
-            "check2delete"       : lambda found: not found["is_protected"],
+            "check2delete"       : lambda found: not( hasattr(found,"is_protected") and found.is_protected ) and not ( found.lifecycle_state == "DELETED" or found.lifecycle_state == "DELETING" ),
             "function_delete"    : "delete_view",
             "name_singular"      : "DNS view",
             "name_plural"        : "DNS views",
