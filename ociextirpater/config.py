@@ -41,6 +41,7 @@ class config:
                                 "oke",
                                 "blockstorage",
                                 # "network",
+                                "maildelivery",
                                 "identity",
     ]
 

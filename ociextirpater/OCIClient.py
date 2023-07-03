@@ -107,11 +107,17 @@ class OCIClient:
                     # we need to filter out any that are in state DELETED
                     for found_object in found_objects:
                         if "formatter" in object:
-                            logging.info( object["formatter"](found_object) )
+                            try:
+                                logging.info(object["formatter"](found_object))
+                            except Exception as e:
+                                logging.error("Exception using custom formatter to log one line description of object - please report to developer")
+                                logging.info( found_object )
                         else:
-                            logging.info( "{} with OCID {} / name '{}' is in state {}".format( object["name_singular"], found_object.id, found_object.display_name, found_object.lifecycle_state ) )
-
-                        logging.debug( found_object )
+                            try:
+                                logging.info( "{} with OCID {} / name '{}' is in state {}".format( object["name_singular"], found_object.id, found_object.display_name, found_object.lifecycle_state ) )
+                            except Exception as e:
+                                logging.error("Exception logging one line description of object - please report to developer")
+                                logging.info( found_object )
 
                         # Assume we're not supposed to delete
                         delete = False
