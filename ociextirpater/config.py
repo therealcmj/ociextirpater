@@ -147,7 +147,11 @@ class config:
         while compartments_to_traverse:
             for c in compartments_to_traverse:
                 compartments_to_traverse.remove(c)
-                found = oci.pagination.list_call_get_all_results(self.identity_client.list_compartments, c).data
+                found = oci.pagination.list_call_get_all_results(self.identity_client.list_compartments,
+                                                                 c,
+                                                                 **{
+                                                                     "lifecycle_state": "ACTIVE"}
+                                                                 ).data
                 logging.debug( "Found {} child compartments".format( len(found) ) )
                 for x in found:
                     logging.debug("Found compartment {} with lifecycle_state {}".format(x.id,x.lifecycle_state))
