@@ -126,9 +126,11 @@ class OCIClient:
                         # elif found_object.lifecycle_state == "DELETED" or found_object.lifecycle_state == "DELETING":
                         elif ( hasattr( found_object, "lifecycle_state" ) and
                                ( found_object.lifecycle_state == "DELETED"       or
-                                 found_object.lifecycle_state == "DELETING")     or
+                                 found_object.lifecycle_state == "DELETING"      or
                                  found_object.lifecycle_state == "TERMINATED"    or
-                                 found_object.lifecycle_state == "TERMINATING"   ) :
+                                 found_object.lifecycle_state == "TERMINATING"
+                               )
+                             ):
                             logging.debug( "skipping")
                         else:
                             delete = True
