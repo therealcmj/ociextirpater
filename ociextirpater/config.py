@@ -17,6 +17,7 @@ class config:
     categories_to_delete =  [
                                 "cloudguard",
                                 "osms",
+                                "serviceconnector",
                                 "loganalytics",
                                 "ocilogging",
                                 "adm",
