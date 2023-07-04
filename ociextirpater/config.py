@@ -39,6 +39,7 @@ class config:
                                 "certificates",
                                 "compute",
                                 "computepool",
+                                "computemanagement",
                                 "oke",
                                 "blockstorage",
                                 # "network",
