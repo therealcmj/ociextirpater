@@ -50,6 +50,8 @@ class OCIClient:
 
         # if "list_objects" in self.__getattribute__():
         # if self.__getattribute__("list_objects"):
+        # TODO: oh man. I remember when I wrote this. I don't know what I was thinking, but this has got to get
+        # refactored.
         if getattr(self, "list_objects", None):
             logging.debug("Trying 'list_objects' method in class {}".format( self.__class__.__name__))
             try:
@@ -149,9 +151,19 @@ class OCIClient:
                             if delete:
                                 logging.info("Deleting")
                                 try:
+                                    kwargs = {}
+
+                                    if "kwargs_delete" in object:
+                                        kwargs = object["kwargs_delete"]
+
                                     if "function_delete" in object:
                                         f = getattr((self.clients[region]), object["function_delete"])
-                                        f(found_object.id)
+                                        f(found_object.id,**kwargs)
+                                        logging.debug("Successful deletion")
+                                    elif "c_function_delete" in object:
+
+                                        f = getattr((self.compositeClients[region]), object["c_function_delete"])
+                                        f(found_object.id,**kwargs)
                                         logging.debug("Successful deletion")
                                     else:
                                         self.delete_object(object, region, found_object)
