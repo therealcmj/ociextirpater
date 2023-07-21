@@ -165,8 +165,10 @@ class OCIClient:
                                         f = getattr((self.compositeClients[region]), object["c_function_delete"])
                                         f(found_object.id,**kwargs)
                                         logging.debug("Successful deletion")
-                                    else:
+                                    elif hasattr(self,"delete_object"):
                                         self.delete_object(object, region, found_object)
+                                    else:
+                                        logging.debug("No way to delete object (this may be OK)")
 
                                 except Exception as e:
                                     logging.error( "Failed to delete {} because {}".format( object["name_singular"], e))

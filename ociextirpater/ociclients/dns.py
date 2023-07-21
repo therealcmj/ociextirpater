@@ -17,21 +17,22 @@ class dns( OCIClient ):
         #     "name_plural"        : "XXXXs",
         # },
         {
-            "formatter"          : lambda resolver_endpoint: "DNS Resolver Endpoint name '{}' in DNS Resolver {}".format( resolver_endpoint.name, resolver_endpoint.endpoint_id ),
-            # "function_list"      : "list_resolver_endpoints",
-            # "function_delete"    : "delete_resolver_endpoint",
             "name_singular"      : "DNS Resolver Endpoint",
             "name_plural"        : "DNS Resolver Endpoints",
+
+            # "function_list"      : "list_resolver_endpoints",
+            "formatter"          : lambda resolver_endpoint: "DNS Resolver Endpoint name '{}' in DNS Resolver {}".format( resolver_endpoint.name, resolver_endpoint.endpoint_id ),
+            # "function_delete"    : "delete_resolver_endpoint",
         },
 
         {
             "formatter": lambda view: "DNS View name '{}' with id {} is in state {}".format(view.display_name, view.id, view.lifecycle_state),
             "function_list"      : "list_views",
-            "kwargs_list"        : {
-                                        # we are assuming that there are no views in an UPDATING state
-                                        # TODO: figure out if that's a use case we need to address
-                                        "lifecycle_state" : ["ACTIVE"]
-                                   },
+            # "kwargs_list"        : {
+            #                             # we are assuming that there are no views in an UPDATING state
+            #                             # TODO: figure out if that's a use case we need to address
+            #                             "lifecycle_state" : ["ACTIVE"]
+            #                        },
             "check2delete"       : lambda found: not( hasattr(found,"is_protected") and found.is_protected ),
             "function_delete"    : "delete_view",
             "name_singular"      : "DNS view",
@@ -41,11 +42,11 @@ class dns( OCIClient ):
         {
             "formatter"          : lambda zone: "DNS Zone {} name '{}' of type {}".format( zone.id, zone.name, zone.zone_type ),
             "function_list"      : "list_zones",
-            "kwargs_list"        : {
-                                        # we are assuming that there are no zone in a CREATING or UPDATING state
-                                        # TODO: figure out if that's a use case we need to address
-                                        "lifecycle_state" : ["ACTIVE","FAILED"]
-                                   },
+            # "kwargs_list"        : {
+            #                             # we are assuming that there are no zone in a CREATING or UPDATING state
+            #                             # TODO: figure out if that's a use case we need to address
+            #                             "lifecycle_state" : ["ACTIVE","FAILED"]
+            #                        },
             "function_delete"    : "delete_zone",
             "name_singular"      : "DNS Zone",
             "name_plural"        : "DNS Zones",
@@ -96,6 +97,3 @@ class dns( OCIClient ):
             return
 
         raise NotImplementedError
-
-    def check2delete(self,found):
-        pass

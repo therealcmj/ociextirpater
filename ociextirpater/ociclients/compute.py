@@ -6,15 +6,17 @@ from ociextirpater.OCIClient import OCIClient
 class compute( OCIClient ):
     service_name = "Compute"
     clientClass = oci.core.ComputeClient
+    compositeClientClass = oci.core.ComputeClientCompositeOperations
 
     # TODO: move predelete out of the class and into the object!
     def predelete(self,object,region,found_object):
         if object["name_singular"] == "Compute Instance":
             logging.debug("In my pre-delete function")
-            if object.lifecycle_state == "RUNNING":
+            if found_object.lifecycle_state == "RUNNING":
                 logging.info("Stopping instance before terminating")
                 # TODO: switch to composite client and wait for instance to stop
-                self.clients[region].instance_action( found_object.id, "STOP" )
+                # self.clients[region].instance_action( found_object.id, "STOP" )
+                self.compositeClients[region].instance_action_and_wait_for_state(found_object.id, "STOP" , wait_for_states=["STOPPED"])
         return
 
     objects = [

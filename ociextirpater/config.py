@@ -42,9 +42,10 @@ class config:
                                 "computemanagement",
                                 "oke",
                                 "blockstorage",
-                                # "network",
+                                "resourcemanager",
+                                "network",
                                 "maildelivery",
-                                "identity",
+                                # "identity",
     ]
 
 
@@ -137,7 +138,7 @@ class config:
         try:
             compartment_name = self.identity_client.get_compartment(self.compartment).data.name
             logging.info(
-                "Exterpating resources in compartment '{}' (OCID {})".format(compartment_name, self.compartment))
+                "Extirpating resources in compartment '{}' (OCID {})".format(compartment_name, self.compartment))
         except:
             logging.error("Failed to get root compartment")
             raise Exception
@@ -165,7 +166,7 @@ class config:
                         logging.debug("skipping")
                 logging.info("Found {} compartments so far".format( len(self.all_compartments)))
 
-        logging.info("{} compartments will be exterpated".format(len(self.all_compartments)))
+        logging.info("{} compartments will be extirpated".format(len(self.all_compartments)))
 
 
         # regions
@@ -193,4 +194,4 @@ class config:
                 self.regions.append( region.region_name )
 
         logging.info( "Home region: {}".format( self.home_region ) )
-        logging.info( "{} Regions to be exterpated: {}".format( len(self.regions), self.regions ) )
+        logging.info( "{} Regions to be extirpated: {}".format( len(self.regions), self.regions ) )

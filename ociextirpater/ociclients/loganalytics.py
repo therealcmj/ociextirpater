@@ -44,7 +44,7 @@ class loganalytics( OCIClient ):
 
         {
             "function_list"      : "list_log_analytics_log_groups",
-            # "function_delete"    : "delete_log_analytics_log_group",
+            "function_delete"    : "delete_log_analytics_log_group",
             "name_singular"      : "Log Analytics Log Group",
             "name_plural"        : "Log Analytics Log Groups",
         },
