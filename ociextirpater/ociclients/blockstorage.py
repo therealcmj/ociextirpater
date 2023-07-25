@@ -83,7 +83,7 @@ class blockstorage( OCIClient ):
             "function_list"      : "list_volume_backups",
             "kwargs_list"        : {
                                    },
-            "function_delete"    : "list_volume_backup",
+            "function_delete"    : "delete_volume_backup",
             "name_singular"      : "Volume Backup",
             "name_plural"        : "Volume Backups",
         },
@@ -121,7 +121,7 @@ class blockstorage( OCIClient ):
             "function_list"      : "list_volumes",
             "kwargs_list"        : {
                                    },
-            "function_delete"    : "delete_volumes",
+            "function_delete"    : "delete_volume",
             "name_singular"      : "Volume",
             "name_plural"        : "Volumes",
         },

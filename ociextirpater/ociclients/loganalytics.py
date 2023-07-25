@@ -6,6 +6,7 @@ import logging
 class loganalytics( OCIClient ):
     service_name = "Log Analytics"
     clientClass = oci.log_analytics.LogAnalyticsClient
+    compositeClientClass = oci.log_analytics.LogAnalyticsClientCompositeOperations
 
     namespace = None
     def __init__(self,config):
@@ -43,10 +44,11 @@ class loganalytics( OCIClient ):
         # },
 
         {
-            "function_list"      : "list_log_analytics_log_groups",
-            "function_delete"    : "delete_log_analytics_log_group",
             "name_singular"      : "Log Analytics Log Group",
             "name_plural"        : "Log Analytics Log Groups",
+            "function_list"      : "list_log_analytics_log_groups",
+            "formatter"          : lambda lg: "Log Group with OCID {} / name '{}'".format(lg.id, lg.display_name),
+            # "function_delete"    : "delete_log_analytics_log_group",
         },
 
         # {

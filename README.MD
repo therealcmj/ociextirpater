@@ -24,19 +24,25 @@ In short that code declares:
 * the method in the class used to list and delete the object
 * (optionally) specific formatters to generate a "one-liner" for the object
 
-A class may also override some of the stuff in OCIClient.py in cases where the client class works differently than typical.
+A class may also override some of the stuff in OCIClient.py in cases where the client class works differently than
+typical.
+
+## More info
+
+Check out my blog post at 
+https://www.ateam-oracle.com/post/cleanup-an-oci-compartment
 
 ## Inspiration
 
-This was inspired by Richard Garsthagen's work on [OCI Super Delete](https://github.com/AnykeyNL/OCI-SuperDelete).
+This was inspired by Richard Garsthagen's work on [OCI Super Delete](https://github.com/AnykeyNL/OCI-SuperDelete). In
+fact, I even stole (most of) the command line arguments from his script. Making this almost a drop in replacement.
 
-I wanted to try my hand at something similar but that was less "code" and more "declaritive". Mostly because I thought it
-would be nice to be able to add new object types to be deleted by simply declaring them rather than needing to write a bunch
-of code.
+I wanted to try my hand at something similar but that was less "code" and more "declarative". Mostly because I thought
+it would be nice to be able to add new object types to be deleted by simply declaring them rather than needing to write
+a bunch of code.
 
 In the end I'm not sure my approach was better or worse (OCIClient.py is practically unreadable) but it was a good
 learning experience!
-
 
 ## What's next
 

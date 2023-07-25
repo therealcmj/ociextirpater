@@ -7,12 +7,13 @@ class xxx( OCIClient ):
 
     objects = [
         # {
-        #     # "formatter"          : lambda instance: "XXX instance with OCID {} / name '{}' is in state {}".format( instance.id, instance.name, instance.lifecycle_state ),
+        #     "name_singular"      : "XXX",
+        #     "name_plural"        : "XXXXs",
+
         #     "function_list"      : "list_xxx",
         #     "kwargs_list"        : {
         #                            },
+        #     "formatter"          : lambda instance: "XXX instance with OCID {} / name '{}' is in state {}".format( instance.id, instance.name, instance.lifecycle_state ),
         #     "function_delete"    : "delete_xxx",
-        #     "name_singular"      : "XXX",
-        #     "name_plural"        : "XXXXs",
         # },
     ]
