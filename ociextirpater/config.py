@@ -43,6 +43,8 @@ class config:
                                 "oke",
                                 "blockstorage",
                                 "resourcemanager",
+                                "nwfw",
+                                "npa",
                                 "network",
                                 "maildelivery",
                                 # "identity",

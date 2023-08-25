@@ -15,7 +15,6 @@ class vss( OCIClient ):
             "function_delete"    : "delete_host_scan_target",
         },
 
-
         {
             "name_singular"      : "VSS Host Scan recipe",
             "name_plural"        : "VSS Host Scan recipes",
@@ -24,13 +23,62 @@ class vss( OCIClient ):
             "function_delete"    : "delete_host_scan_recipe",
         },
 
-        # list_container_scan_recipes
-        # list_container_scan_results
-        # list_container_scan_targets
-        # list_host_agent_scan_results
-        # list_host_cis_benchmark_scan_results
-        # list_host_endpoint_protection_scan_results
+        {
+            "name_singular"      : "VSS Host Port Scan result",
+            "name_plural"        : "VSS Host Port Scan results",
 
+            "function_list"      : "list_host_port_scan_results",
+            "function_delete"    : "delete_host_port_scan_result",
+        },
+
+        {
+            "name_singular"      : "VSS Host Agent Scan result",
+            "name_plural"        : "VSS Host Agent Scan results",
+
+            "function_list"      : "list_host_agent_scan_results",
+            "function_delete"    : "delete_host_agent_scan_result",
+        },
+
+        {
+            "name_singular"      : "VSS CIS Benchmark Scan result",
+            "name_plural"        : "VSS CIS Benchmark Scan results",
+
+            "function_list"      : "list_host_cis_benchmark_scan_results",
+            "function_delete"    : "delete_host_cis_benchmark_scan_result",
+        },
+
+        {
+            "name_singular"      : "VSS Container Scan result",
+            "name_plural"        : "VSS Container Scan results",
+
+            "function_list"      : "list_container_scan_results",
+            "function_delete"    : "delete_container_scan_result",
+        },
+
+        {
+            "name_singular"      : "VSS Container Scan Scan recipe",
+            "name_plural"        : "VSS Container Scan Scan recipes",
+
+            "function_list"      : "list_container_scan_recipes",
+            "function_delete"    : "delete_container_scan_recipe",
+        },
+
+        {
+            "name_singular"      : "VSS Container Scan target",
+            "name_plural"        : "VSS Container Scan targets",
+
+            "function_list"      : "list_container_scan_targets",
+            "function_delete"    : "delete_container_scan_target",
+        },
+
+
+        # {
+        #     "name_singular"      : "VSS Endpoint Protection Scan result",
+        #     "name_plural"        : "VSS Endpoint Protection Scan results",
+        #
+        #     "function_list"      : "list_host_endpoint_protection_scan_results",
+        #     "function_delete"    : "delete_host_endpoint_protection_scan_result",
+        # },
 
         # {
         #     "name_singular"      : "XXX",

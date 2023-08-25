@@ -212,7 +212,7 @@ class network( OCIClient ):
 
 
         if object["name_plural"] == "VCNs":
-            self.compositeClients[region].delete_vcn_and_wait_for_state(found_object,wait_for_states=[oci.core.models.Vcn.LIFECYCLE_STATE_TERMINATED])
+            self.compositeClients[region].delete_vcn_and_wait_for_state(found_object.id,wait_for_states=[oci.core.models.Vcn.LIFECYCLE_STATE_TERMINATED])
 
 
     def list_objects(self, o, region, this_compartment, **kwargs):
