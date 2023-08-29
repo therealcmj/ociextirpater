@@ -29,11 +29,10 @@ class config:
                                 # "dbtools",
                                 "database",
                                 "nosql",
+                                "mysql",
                                 "dns",
                                 "functions",
-                                "nosql",
                                 "objectstore",
-                                "osms",
                                 "vision",
                                 "loadbalancers",
                                 "certificates",
@@ -47,6 +46,10 @@ class config:
                                 "npa",
                                 "network",
                                 "maildelivery",
+                                "healthchecks",
+                                "stream",
+                                "vss",
+                                "waf",
                                 # "identity",
     ]
 
