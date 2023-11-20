@@ -35,4 +35,9 @@ if __name__ == "__main__":
         o = cls( cfg )
         logging.debug("Instantiated OK")
 
-        o.findAndDeleteAllInCompartment()
+        # executor.submit(o.findAndDeleteAllInCompartment)
+        try:
+            o.findAndDeleteAllInCompartment()
+        except Exception as e:
+            logging.error("Exception caught")
+            logging.debug(e)
