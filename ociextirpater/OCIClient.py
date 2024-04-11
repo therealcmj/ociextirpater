@@ -30,16 +30,17 @@ class OCIClient:
         self.config = config
 
         logging.info("Initializing clients...")
+
+        # always initialize the client for the home region
+        # this is the easy fix for issue 2 @ https://github.com/therealcmj/ociextirpater/issues/2
+        logging.debug("Initializing OCI client in the home region for {}".format(self.clientClass.__name__))
+        self._init_regional_client(config.ociconfig, config.home_region)
+
         # if the service IS a regional service then we need one client for each region
         if self.isRegional:
             logging.debug( "Initializing regional OCI clients for {}".format( self.clientClass.__name__))
             for region in self.config.regions:
                 self._init_regional_client( config.ociconfig, region)
-
-        # otherwise we only need the one for the Home region
-        else:
-            logging.debug( "Initializing OCI client in the home region for {}".format( self.clientClass.__name__))
-            self._init_regional_client(config.ociconfig, config.home_region)
 
         logging.debug("{} {} clients initialized".format( len(self.clients), self.clientClass.__name__))
 
