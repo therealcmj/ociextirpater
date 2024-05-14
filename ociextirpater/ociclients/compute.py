@@ -25,6 +25,9 @@ class compute( OCIClient ):
             "name_plural"        : "Compute Instances",
             "function_list"      : "list_instances",
             "function_delete"    : "terminate_instance",
+            "kwargs_delete"      : {
+                "preserve_data_volumes_created_at_launch": False
+            }
         },
 
         {
