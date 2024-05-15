@@ -94,6 +94,7 @@ class objectstore( OCIClient ):
                 kwargs = {}
                 if hasattr( child, "kwargs_list"):
                     kwargs = child["kwargs_list"]
+                logging.debug("Getting a list of all objects in bucket")
                 xs = oci.pagination.list_call_get_all_results(  getattr((self.clients[region]), child["function_list"]),
                                                                 self.namespace,
                                                                 object.name,
@@ -103,9 +104,15 @@ class objectstore( OCIClient ):
                 df = getattr((self.clients[region]), child["function_delete"])
                 if child["name_plural"] == "Objects":
                     # then we need to do something special
-                    logging.debug("Deleting objects")
+                    logging.info("Deleting objects in bucket")
+                    i = 0
                     for obj in xs.objects:
+                        logging.debug("Deleting {}".format(obj.name))
                         df( self.namespace, object.name, obj.name )
+                        i = i+1
+                        if 0 == i % 100:
+                            logging.info("Deleted {} objects from bucket so far".format(i))
+
                 else:
                     for x in xs:
                         if child["name_singular"] == "Object Store multi-part upload":
@@ -115,6 +122,7 @@ class objectstore( OCIClient ):
 
 
             f = getattr((self.clients[region]), "delete_bucket")
+            logging.debug("calling delete method")
             f(self.namespace, object.name)
         else:
             raise NotImplementedError
