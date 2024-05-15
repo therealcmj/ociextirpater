@@ -16,6 +16,7 @@ class config:
     # that doesn't make much of a difference until you get to things like networking
     categories_to_delete =  [
                                 "cloudguard",
+                                "monitoring",
                                 "osms",
                                 "serviceconnector",
                                 "loganalytics",
