@@ -27,7 +27,7 @@ class config:
                                 "apigateway",
                                 "bastion",
                                 "datasafe",
-                                # "dbtools",
+                                "dbtools",
                                 "database",
                                 "nosql",
                                 "mysql",
