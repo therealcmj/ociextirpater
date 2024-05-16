@@ -26,9 +26,8 @@ class certificates( OCIClient ):
             raise NotImplementedError
 
     def delete_object(self, object, region, found_object):
-        from datetime import datetime, timedelta
-        at = datetime.now() + timedelta(days=7, minutes=5)
-        # _details['timeOfDeletion'] = at.isoformat() + "Z"
+        from datetime import datetime, timedelta, timezone
+        at = datetime.now(timezone.utc) + timedelta(days=7, minutes=15)
         tod = at.strftime('%Y-%m-%dT%H:%M:%S.000Z')
         logging.debug("Time of scheduled deletion: {}".format(tod))
 
@@ -72,10 +71,11 @@ class certificates( OCIClient ):
         },
 
         {
-            "function_list": "list_certificate_authorities",
-            # "function_delete": "schedule_certificate_authority_deletion",
-            "name_singular": "Certificate Authority",
-            "name_plural": "Certificate Authorities",
+            "name_singular"      : "Certificate Authority",
+            "name_plural"        : "Certificate Authorities",
+
+            "formatter"          : lambda ca: "Certificate Authority OCID {} / name '{}' is in state {}".format( ca.id, ca.name, ca.lifecycle_state ),
+            "function_list"      : "list_certificate_authorities",
         },
 
         # {
