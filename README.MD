@@ -6,7 +6,7 @@ extirpate
 
 ## What it is and does
 
-The OCI Extirpater is a command line tool that deletes everything within a compartment in every OCI region.
+The OCI Extirpater is a command line tool that deletes everything within a compartment in every subscribed OCI region.
 
 ## How it does it
 
@@ -27,6 +27,39 @@ In short that code declares:
 A class may also override some of the stuff in OCIClient.py in cases where the client class works differently than
 typical.
 
+## Quick Start
+
+**NOTE:** OCIExtirpate supports a number of command line options including allowing you to limit
+the resource types and regions it explores and cleans.
+Running ociextirpate.py without any command line options will show you command line help.
+
+### Running from your laptop
+
+1. Set up the OCI CLI following the [instructions in the public documentation](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm)
+1. copy the code to your machine
+   * if you have registered your ssh key in GitHub:
+     * run "git clone ssh://github.com/therealcmj/ociextirpater.git"
+   * if you have **NOT** registered you ssh key in GitHub:
+       * run "git clone https://github.com/therealcmj/ociextirpater.git"
+1. cd into "ociextirpater"
+1. run "./ociextirpate.py -c ocid1.compartment.oc1..XXXX"
+   * replacing ocid1.compartment.oc1..XXXX with the compartment you want to clean
+
+### Running in Cloud Shell
+
+Since iterating over all child compartments, regions, and resources types is a slow process **and** Cloud Shell has
+a relatively short timeout before disconnecting it is generally preferable to run extirpater from your laptop or
+from a compute instance.
+
+But if you **want** to run it from Cloud Shell that is supported:
+
+1. open Cloud Shell
+1. run "git clone git clone https://github.com/therealcmj/ociextirpater.git"
+   * You need to use https rather than ssh since you likely won't have an ssh key for your Cloud Shell registered in GitHub 
+1. cd into "ociextirpater"
+1. run "./ociextirpate.py -c ocid1.compartment.oc1..XXXX -dt"
+   * replacing ocid1.compartment.oc1..XXXX with the compartment you want to clean
+
 ## More info
 
 Check out my blog post at 
@@ -35,7 +68,7 @@ https://www.ateam-oracle.com/post/cleanup-an-oci-compartment
 ## Inspiration
 
 This was inspired by Richard Garsthagen's work on [OCI Super Delete](https://github.com/AnykeyNL/OCI-SuperDelete). In
-fact, I even stole (most of) the command line arguments from his script. Making this almost a drop in replacement.
+fact, I even stole (most of) the command line arguments from his script. Making this _almost_ a drop in replacement.
 
 I wanted to try my hand at something similar but that was less "code" and more "declarative". Mostly because I thought
 it would be nice to be able to add new object types to be deleted by simply declaring them rather than needing to write
