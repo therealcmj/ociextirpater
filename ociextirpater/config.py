@@ -115,13 +115,17 @@ class config:
         elif cmd.is_delegation_token:
             logging.debug("Authenticating with Delegation Token")
 
-            self.ociconfig = oci.config.from_file(cmd.config_file, cmd.config_profile)
-            delegation_token_location = self.ociconfig["delegation_token_file"]
-
+            import os
+            delegation_token_location = os.environ["OCI_DELEGATION_TOKEN_FILE"]
             with open(delegation_token_location, 'r') as delegation_token_file:
                 delegation_token = delegation_token_file.read().strip()
                 # get signer from delegation token
                 self.signer = oci.auth.signers.InstancePrincipalsDelegationTokenSigner(delegation_token=delegation_token)
+
+            self.ociconfig = {
+                "region"  : os.environ["OCI_REGION"],
+                "tenancy" : os.environ["OCI_TENANCY"]
+            }
 
         # otherwise use the config file yada yada
         else:

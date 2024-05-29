@@ -18,7 +18,7 @@ class OCIClient:
         logging.debug("Old region in this OCI config dict: {}".format(rconfig["region"]))
         rconfig["region"] = region
         logging.debug("New region in this OCI config dict: {}".format(rconfig["region"]))
-        self.clients[region] = self.clientClass(rconfig)
+        self.clients[region] = self.clientClass(rconfig, signer=self.config.signer)
 
         # if there's a Composite Client class specified then initialize that too
         if self.compositeClientClass:
