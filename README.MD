@@ -54,7 +54,7 @@ from a compute instance.
 But if you **want** to run it from Cloud Shell that is supported:
 
 1. open Cloud Shell
-1. run "git clone git clone https://github.com/therealcmj/ociextirpater.git"
+1. run "git clone https://github.com/therealcmj/ociextirpater.git"
    * You need to use https rather than ssh since you likely won't have an ssh key for your Cloud Shell registered in GitHub 
 1. cd into "ociextirpater"
 1. run "./ociextirpate.py -c ocid1.compartment.oc1..XXXX -dt"
