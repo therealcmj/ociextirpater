@@ -41,6 +41,20 @@ class database( OCIClient ):
         #     "name_plural"        : "Databases",
         # },
 
+        {
+            "function_list"      : "list_autonomous_container_databases",
+            "function_delete"    : "terminate_autonomous_container_database",
+            "name_singular"      : "Autonomous Container Database",
+            "name_plural"        : "Autonomous Container Databases",
+        },
+
+        {
+            "function_list"      : "list_autonomous_databases",
+            "function_delete"    : "delete_autonomous_database",
+            "name_singular"      : "Autonomous Database",
+            "name_plural"        : "Autonomous Databases",
+        },
+
         # {
         #     # "formatter"          : lambda instance: "XXX instance with OCID {} / name '{}' is in state {}".format( instance.id, instance.name, instance.lifecycle_state ),
         #     "function_list"      : "list_xxx",
