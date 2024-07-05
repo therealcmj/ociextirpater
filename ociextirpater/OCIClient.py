@@ -86,95 +86,115 @@ class OCIClient:
             else:
                 logging.debug( "findAndDeleteAllInCompartment on child compartment {}".format( this_compartment ))
 
-            for region in self.clients:
-                # self.objects is all of the "objects" the Client exposes
-                for object in self.objects:
-                    logging.debug("Singular name: {}".format(object["name_singular"]))
+            if 0 == self.config.threads:
+                logging.info("Executing cleanup without threading. Consider increasing threads to improve performance.")
+                for region in self.clients:
+                    self.cleanupCompartmentInRegion(region, this_compartment)
+            else:
+                logging.info("Executing cleanup with {} threads".format( self.config.threads ))
 
-                    # self.clients is a dict from region name to the actual client for that region.
-                    logging.info( "Finding all {} in compartment {} in region {}".format( object["name_plural"], this_compartment, region))
-                    kwargs = {}
-
-                    if "kwargs_list" in object:
-                        kwargs = object["kwargs_list"]
-
-                    found_objects = []
-                    try:
-                        found_objects = self.findAllInCompartment( region, object, this_compartment, **kwargs )
-                    except Exception as e:
-                        logging.error("Unexpected exception caught calling {}".format(object["function_list"]))
-                        logging.error(e)
-
-                    logging.info( "Found {} {}".format( len( found_objects ), object["name_plural"] ) )
-
-                    # we need to filter out any that are in state DELETED
-                    for found_object in found_objects:
-                        if "formatter" in object:
-                            try:
-                                logging.info(object["formatter"](found_object))
-                            except Exception as e:
-                                logging.error("Exception using custom formatter to log one line description of object - please report to developer")
-                                logging.info( found_object )
-                        else:
-                            try:
-                                logging.info( "{} with OCID {} / name '{}' is in state {}".format( object["name_singular"], found_object.id, found_object.display_name, found_object.lifecycle_state ) )
-                            except Exception as e:
-                                logging.error("Exception logging one line description of object - please report to developer")
-                                logging.info( found_object )
-
-                        # Assume we're not supposed to delete
-                        delete = False
-                        if "check2delete" in object:
-                            delete = object["check2delete"](found_object)
-                        # elif found_object.lifecycle_state == "DELETED" or found_object.lifecycle_state == "DELETING":
-                        elif ( hasattr( found_object, "lifecycle_state" ) and
-                               ( found_object.lifecycle_state == "DELETED"       or
-                                 found_object.lifecycle_state == "DELETING"      or
-                                 found_object.lifecycle_state == "TERMINATED"    or
-                                 found_object.lifecycle_state == "TERMINATING"
-                               )
-                             ):
-                            logging.debug( "skipping")
-                        else:
-                            delete = True
-
-                        if delete:
-                            logging.debug("Object will be delete")
-                            try:
-                                # in some cases there are things we need to do before deleting.
-                                # for example we may need to stop a compute or analytics instance before deleting it
-                                # in those cases the predelete() function should do that
-                                self.predelete(object,region,found_object)
-                            except Exception as e:
-                                logging.error("Exception in pre-delete method. {} will not be deleted".format(object["name_singular"]))
-                                logging.info(e)
-                                delete = False
-
-                            if delete:
-                                logging.info("Deleting")
-                                try:
-                                    kwargs = {}
-
-                                    if "kwargs_delete" in object:
-                                        kwargs = object["kwargs_delete"]
-
-                                    if "function_delete" in object:
-                                        f = getattr((self.clients[region]), object["function_delete"])
-                                        f(found_object.id,**kwargs)
-                                        logging.debug("Successful deletion")
-                                    elif "c_function_delete" in object:
-
-                                        f = getattr((self.compositeClients[region]), object["c_function_delete"])
-                                        f(found_object.id,**kwargs)
-                                        logging.debug("Successful deletion")
-                                    elif hasattr(self,"delete_object"):
-                                        self.delete_object(object, region, found_object)
-                                    else:
-                                        logging.debug("No way to delete object (this may be OK)")
-
-                                except Exception as e:
-                                    logging.error( "Failed to delete {} because {}".format( object["name_singular"], e))
-                                    logging.info( "Object info: {}".format( found_object ))
-                                    logging.debug(e)
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor(max_workers=self.config.threads) as executor:
+                    r = {executor.submit(self.cleanupCompartmentInRegion, region, this_compartment): region for region in self.clients}
+                    for future in concurrent.futures.as_completed(r):
+                        region = r[future]
+                        logging.info("Region {} done for {}".format(region,self.service_name))
 
         logging.info("Cleanup of {} complete".format(self.service_name))
+
+    def cleanupCompartmentInRegion(self, region, this_compartment):
+        # self.objects is all of the "objects" the Client exposes
+        for object in self.objects:
+            logging.debug("Singular name: {}".format(object["name_singular"]))
+
+            # self.clients is a dict from region name to the actual client for that region.
+            logging.info(
+                "Finding all {} in compartment {} in region {}".format(object["name_plural"], this_compartment, region))
+            kwargs = {}
+
+            if "kwargs_list" in object:
+                kwargs = object["kwargs_list"]
+
+            found_objects = []
+            try:
+                found_objects = self.findAllInCompartment(region, object, this_compartment, **kwargs)
+            except Exception as e:
+                logging.error("Unexpected exception caught calling {}".format(object["function_list"]))
+                logging.error(e)
+
+            logging.info("Found {} {}".format(len(found_objects), object["name_plural"]))
+
+            # we need to filter out any that are in state DELETED
+            for found_object in found_objects:
+                if "formatter" in object:
+                    try:
+                        logging.info(object["formatter"](found_object))
+                    except Exception as e:
+                        logging.error(
+                            "Exception using custom formatter to log one line description of object - please report to developer")
+                        logging.info(found_object)
+                else:
+                    try:
+                        logging.info("{} with OCID {} / name '{}' is in state {}".format(object["name_singular"],
+                                                                                         found_object.id,
+                                                                                         found_object.display_name,
+                                                                                         found_object.lifecycle_state))
+                    except Exception as e:
+                        logging.error("Exception logging one line description of object - please report to developer")
+                        logging.info(found_object)
+
+                # Assume we're not supposed to delete
+                delete = False
+                if "check2delete" in object:
+                    delete = object["check2delete"](found_object)
+                # elif found_object.lifecycle_state == "DELETED" or found_object.lifecycle_state == "DELETING":
+                elif (hasattr(found_object, "lifecycle_state") and
+                      (found_object.lifecycle_state == "DELETED" or
+                       found_object.lifecycle_state == "DELETING" or
+                       found_object.lifecycle_state == "TERMINATED" or
+                       found_object.lifecycle_state == "TERMINATING"
+                      )
+                ):
+                    logging.debug("skipping")
+                else:
+                    delete = True
+
+                if delete:
+                    logging.debug("Object will be delete")
+                    try:
+                        # in some cases there are things we need to do before deleting.
+                        # for example we may need to stop a compute or analytics instance before deleting it
+                        # in those cases the predelete() function should do that
+                        self.predelete(object, region, found_object)
+                    except Exception as e:
+                        logging.error(
+                            "Exception in pre-delete method. {} will not be deleted".format(object["name_singular"]))
+                        logging.info(e)
+                        delete = False
+
+                    if delete:
+                        logging.info("Deleting")
+                        try:
+                            kwargs = {}
+
+                            if "kwargs_delete" in object:
+                                kwargs = object["kwargs_delete"]
+
+                            if "function_delete" in object:
+                                f = getattr((self.clients[region]), object["function_delete"])
+                                f(found_object.id, **kwargs)
+                                logging.debug("Successful deletion")
+                            elif "c_function_delete" in object:
+
+                                f = getattr((self.compositeClients[region]), object["c_function_delete"])
+                                f(found_object.id, **kwargs)
+                                logging.debug("Successful deletion")
+                            elif hasattr(self, "delete_object"):
+                                self.delete_object(object, region, found_object)
+                            else:
+                                logging.debug("No way to delete object (this may be OK)")
+
+                        except Exception as e:
+                            logging.error("Failed to delete {} because {}".format(object["name_singular"], e))
+                            logging.info("Object info: {}".format(found_object))
+                            logging.debug(e)

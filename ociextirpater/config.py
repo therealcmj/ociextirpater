@@ -80,7 +80,7 @@ class config:
         parser.add_argument("-rg", dest='regions', help="Regions to delete comma separated (defaults to all subscribed regions)")
         parser.add_argument("-c", required=True, dest='compartment', help="top level compartment id to delete")
         parser.add_argument("-o", dest="objects",help="Object catagories to work on. See docs for info")
-        parser.add_argument("-t", dest="threads",default="1",help="Number of threads")
+        parser.add_argument("-t", dest="threads",default=-1, type=int, help="Number of threads")
         cmd = parser.parse_args()
         # if help:
         #     parser.print_help()
@@ -210,3 +210,19 @@ class config:
 
         logging.info( "Home region: {}".format( self.home_region ) )
         logging.info( "{} Regions to be extirpated: {}".format( len(self.regions), self.regions ) )
+
+        if cmd.threads >= 0:
+            # if they give us a limit on number of threads respect it
+            self.threads = cmd.threads
+        else:
+            logging.debug("Setting number of threads to number of regions")
+            self.threads = len(self.regions)
+
+        # 1 == 0 for certain values of 1
+        if self.threads <= 1:
+            self.threads = 0
+
+        logging.info("Number of threads set to {}".format(self.threads))
+
+        if cmd.threads != -1:
+            logging.warning("Threading design is under active development and WILL be changed in the future.")
