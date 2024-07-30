@@ -2,7 +2,7 @@ import oci
 from ociextirpater.OCIClient import OCIClient
 
 class aivision( OCIClient ):
-    service_name = "AI Speech"
+    service_name = "AI Vision"
     clientClass = oci.ai_vision.AIServiceVisionClient
 
     objects = [
