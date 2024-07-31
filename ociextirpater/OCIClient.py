@@ -160,10 +160,11 @@ class OCIClient:
                     delete = True
 
                 if delete:
-                    logging.debug("Object will be delete")
+                    logging.debug("Object will be deleted")
                     try:
                         # in some cases there are things we need to do before deleting.
                         # for example we may need to stop a compute or analytics instance before deleting it
+                        # (this is a contrived example since computes don't need to be stopped before being deleted)
                         # in those cases the predelete() function should do that
                         self.predelete(object, region, found_object)
                     except Exception as e:
