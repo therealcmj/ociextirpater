@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import importlib
-import oci
 import logging
 
 __requires__ = 'oci==2.78.0'

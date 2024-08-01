@@ -9,6 +9,7 @@ class xxx( OCIClient ):
         # {
         #     "name_singular"      : "XXX",
         #     "name_plural"        : "XXXXs",
+        #     "check2delete"       : lambda image: hasattr(image, "compartment_id") and image.compartment_id != None,
 
         #     "function_list"      : "list_xxx",
         #     "kwargs_list"        : {

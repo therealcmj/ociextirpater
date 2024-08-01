@@ -1,5 +1,7 @@
 import logging
 import oci
+import concurrent.futures
+
 
 class OCIClient:
     config = None
@@ -93,7 +95,6 @@ class OCIClient:
             else:
                 logging.info("Executing cleanup with {} threads".format( self.config.threads ))
 
-                import concurrent.futures
                 with concurrent.futures.ThreadPoolExecutor(max_workers=self.config.threads) as executor:
                     r = {executor.submit(self.cleanupCompartmentInRegion, region, this_compartment): region for region in self.clients}
                     for future in concurrent.futures.as_completed(r):
