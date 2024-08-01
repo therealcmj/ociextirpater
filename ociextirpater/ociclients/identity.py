@@ -9,11 +9,24 @@ class identity( OCIClient ):
     isRegional = False
 
     objects = [
+
+        {
+            "name_singular"      : "Policy",
+            "name_plural"        : "Policies",
+
+            "function_list"      : "list_policies",
+            "function_delete"    : "delete_policy",
+            "formatter"          : lambda policy: "Policy with OCID {} / name '{}' is in state {}".format(policy.id,policy.name,policy.lifecycle_state),
+        },
+
         {
             "function_list"      : "list_compartments",
             # "function_delete"    : "delete_compartment",
             "name_singular"      : "Compartment",
             "name_plural"        : "Compartments",
+            "formatter"          : lambda compartment: "Compartment with OCID {} / name '{}' is in state {}".format(compartment.id,
+                                                                                                                    compartment.name,
+                                                                                                                    compartment.lifecycle_state),
         },
 
         # {
