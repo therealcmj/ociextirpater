@@ -45,6 +45,7 @@ class config:
                                 "computepool",
                                 "computemanagement",
                                 "oke",
+                                "artifacts",
                                 "blockstorage",
                                 "resourcemanager",
                                 "nwfw",
