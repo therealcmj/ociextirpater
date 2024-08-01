@@ -17,6 +17,7 @@ class config:
     categories_to_delete =  [
                                 "cloudguard",
                                 "monitoring",
+                                "events",
                                 "notifications",
                                 "osms",
                                 "serviceconnector",
@@ -35,7 +36,7 @@ class config:
                                 "database",
                                 "nosql",
                                 "mysql",
-                                "dns",
+                                #"dns",
                                 "functions",
                                 "objectstore",
                                 "loadbalancers",
