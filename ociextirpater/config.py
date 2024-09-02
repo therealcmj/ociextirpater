@@ -41,6 +41,7 @@ class config:
                                 "functions",
                                 "objectstore",
                                 "loadbalancers",
+                                "nwloadbalancers",
                                 "certificates",
                                 "compute",
                                 "computepool",
