@@ -44,6 +44,7 @@ class config:
                                 "nwloadbalancers",
                                 "certificates",
                                 "compute",
+                                "cache",
                                 "computepool",
                                 "computemanagement",
                                 "oke",
