@@ -115,10 +115,10 @@ class config:
         cmd.regions = os.getenv(f'{prefix}_REGIONS', cmd.regions)
         cmd.objects = os.getenv(f'{prefix}_OBJECTS', cmd.objects)
         cmd.threads = int(os.getenv(f'{prefix}_THREADS', cmd.threads))
-        cmd.is_instance_principal = True if os.getenv(f'{prefix}_INSTANCE_PRINCIPAL') else False
-        cmd.is_delegation_token = True if os.getenv(f'{prefix}_DELEGATION_TOKEN') else False
-        cmd.force = True if os.getenv(f'{prefix}_FORCE') else False
-        cmd.debug = True if os.getenv(f'{prefix}_DEBUG') else False
+        cmd.is_instance_principal = True if os.getenv(f'{prefix}_INSTANCE_PRINCIPAL') or cmd.is_instance_principal else False
+        cmd.is_delegation_token = True if os.getenv(f'{prefix}_DELEGATION_TOKEN') or cmd.is_delegation_token else False
+        cmd.force = True if os.getenv(f'{prefix}_FORCE') or cmd.force else False
+        cmd.debug = True if os.getenv(f'{prefix}_DEBUG') or cmd.debug else False
         cmd.skip_delete_compartment = True if os.getenv(f'{prefix}_SKIP_DELETE_COMPARTMENT') else False
 
         # For OCI Functions
@@ -307,7 +307,3 @@ class config:
 
         if cmd.threads != -1:
             logging.warning("Threading design is under active development and WILL be changed in the future.")
-
-if __name__ == '__main__':
-    logging.basicConfig(format='%(asctime)s %(threadName)s %(levelname)7s %(module)s:%(funcName)s -> %(message)s', level=logging.INFO)
-    cfg = config()

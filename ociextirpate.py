@@ -10,7 +10,8 @@ __requires__ = 'oci==2.78.0'
 
 def extirpate():
 
-    logging.basicConfig(format='%(asctime)s %(threadName)s %(levelname)7s %(module)s:%(funcName)s -> %(message)s', level=logging.INFO)
+    logging.basicConfig(format='%(asctime)s %(threadName)s %(levelname)7s %(module)s:%(funcName)s -> %(message)s')
+    logging.getLogger().setLevel(logging.INFO)
     logging.info("Starting up")
 
     logging.info("Configuring...")
