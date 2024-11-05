@@ -1,3 +1,6 @@
+import logging, logging.handlers
+import argparse
+import os
 
 class config:
 
@@ -11,6 +14,8 @@ class config:
     regions = []
 
     identity_client = None
+
+    var_prefix = 'EXTFN'
 
     # we work through these sequentially in the order specified
     # that doesn't make much of a difference until you get to things like networking
@@ -64,9 +69,17 @@ class config:
 
 
     def __init__(self):
-        import logging, logging.handlers
-        import argparse
+        args = self.get_args() if not os.getenv(f'{self.var_prefix}_RESOURCE_PRINCIPAL') else self.make_namespace()
+        args = self.get_env_vars(args)
 
+        valid = self.validate(args)
+        if not valid[0]:
+            raise Exception(f'Missing argument {valid[1]}')
+        
+        self.process(args)
+    
+
+    def get_args(self) -> argparse.Namespace:
         # parser = argparse.ArgumentParser(formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=80, width=130))
         parser = argparse.ArgumentParser()
 
@@ -81,13 +94,63 @@ class config:
         parser.add_argument('-debug', action='store_true', default=False, dest='debug', help='Enable debug')
         parser.add_argument('-skip_delete_compartment', action='store_true', default=False, dest='skip_delete_compartment', help='Skip Deleting the compartment at the end')
         parser.add_argument("-rg", dest='regions', help="Regions to delete comma separated (defaults to all subscribed regions)")
-        parser.add_argument("-c", required=True, dest='compartment', help="top level compartment id to delete")
+        parser.add_argument("-c", dest='compartment', help="top level compartment id to delete")
         parser.add_argument("-o", dest="objects",help="Object catagories to work on. See docs for info")
         parser.add_argument("-t", dest="threads",default=-1, type=int, help="Number of threads")
         cmd = parser.parse_args()
         # if help:
         #     parser.print_help()
         #     # sys.exit(-1)
+        return cmd
+    
+    def get_env_vars(self, cmd: argparse.Namespace) -> argparse.Namespace:
+        prefix = os.getenv('EXTIRPATER_PREFIX', self.var_prefix)
+
+        # Required
+        cmd.compartment = os.getenv(f'{prefix}_COMPARTMENT', cmd.compartment)
+
+        cmd.config_file = os.getenv(f'{prefix}_CONFIG_FILE', cmd.config_file)
+        cmd.config_profile = os.getenv(f'{prefix}_CONFIG_PROFILE', cmd.config_profile)
+        cmd.log_file = os.getenv(f'{prefix}_LOG_FILE', cmd.log_file)
+        cmd.regions = os.getenv(f'{prefix}_REGIONS', cmd.regions)
+        cmd.objects = os.getenv(f'{prefix}_OBJECTS', cmd.objects)
+        cmd.threads = int(os.getenv(f'{prefix}_THREADS', cmd.threads))
+        cmd.is_instance_principal = True if os.getenv(f'{prefix}_INSTANCE_PRINCIPAL') or cmd.is_instance_principal else False
+        cmd.is_delegation_token = True if os.getenv(f'{prefix}_DELEGATION_TOKEN') or cmd.is_delegation_token else False
+        cmd.force = True if os.getenv(f'{prefix}_FORCE') or cmd.force else False
+        cmd.debug = True if os.getenv(f'{prefix}_DEBUG') or cmd.debug else False
+        cmd.skip_delete_compartment = True if os.getenv(f'{prefix}_SKIP_DELETE_COMPARTMENT') else False
+
+        # For OCI Functions
+        cmd.is_resource_principal = True if os.getenv(f'{prefix}_RESOURCE_PRINCIPAL') else False
+
+        return cmd
+    
+    # Is a required argument missing? Fail and let the user know
+    def validate(self, cmd: argparse.Namespace) -> tuple[bool, str]:
+        if not cmd.compartment: return (False, 'compartment')
+
+        return (True, '')
+    
+    def make_namespace(self) -> argparse.Namespace:
+        ns = argparse.Namespace()
+
+        ns.compartment = None
+        ns.config_file = None
+        ns.config_profile = None
+        ns.log_file = None
+        ns.regions = None
+        ns.objects = None
+        ns.threads = -1
+        ns.is_instance_principal = None
+        ns.is_delegation_token = None
+        ns.force = None
+        ns.debug = None
+        ns.skip_delete_compartment = None
+
+        return ns
+
+    def process(self, cmd: argparse.Namespace):
 
         # process the logging arguments first
         rootLogger = logging.getLogger()
@@ -99,6 +162,8 @@ class config:
         if cmd.debug:
             rootLogger.setLevel("DEBUG")
             logging.debug("Log level set to DEBUG")
+            logging.debug(f'Arguement namespace: {cmd}')
+            logging.debug(f'Environment variables: {dict(os.environ)}')
 
 
         # then process the other arguments
@@ -109,21 +174,34 @@ class config:
         if cmd.is_instance_principal:
             logging.debug("Authenticating with Instance Principal")
             try:
-                signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
+                self.signer = oci.auth.signers.InstancePrincipalsSecurityTokenSigner()
                 self.ociconfig = {
-                    'region': signer.region,
-                    'tenancy': signer.tenancy_id
+                    'region': self.signer.region,
+                    'tenancy': self.signer.tenancy_id
                 }
 
             except Exception:
                 errTxt = "Error obtaining instance principals certificate, aborting"
                 logging.error(errTxt)
                 raise Exception(errTxt)
+            
+        elif cmd.is_resource_principal:
+            logging.debug("Authenticating with Resource Principal")
+            try:
+                self.signer = oci.auth.signers.get_resource_principals_signer()
+                self.ociconfig = {
+                    'region': self.signer.region,
+                    'tenancy': self.signer.tenancy_id
+                }
+
+            except Exception:
+                errTxt = "Error obtaining resource princiapl signer, aborting"
+                logging.error(errTxt)
+                raise Exception(errTxt)
 
         elif cmd.is_delegation_token:
             logging.debug("Authenticating with Delegation Token")
 
-            import os
             delegation_token_location = os.environ["OCI_DELEGATION_TOKEN_FILE"]
             with open(delegation_token_location, 'r') as delegation_token_file:
                 delegation_token = delegation_token_file.read().strip()

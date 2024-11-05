@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 
+import io
 import importlib
 import logging
 
+from fdk import response
+
 __requires__ = 'oci==2.78.0'
 
-if __name__ == "__main__":
+def extirpate():
 
-    logging.basicConfig(format='%(asctime)s %(threadName)s %(levelname)7s %(module)s:%(funcName)s -> %(message)s', level=logging.INFO)
+    logging.basicConfig(format='%(asctime)s %(threadName)s %(levelname)7s %(module)s:%(funcName)s -> %(message)s')
+    logging.getLogger().setLevel(logging.INFO)
     logging.info("Starting up")
 
     logging.info("Configuring...")
@@ -40,3 +44,17 @@ if __name__ == "__main__":
         except Exception as e:
             logging.error("Exception caught")
             logging.debug(e)
+
+
+def handler(ctx, data: io.BytesIO = None):
+
+    extirpate()
+
+    return response.Response(
+        ctx, response_data='Finished extirpating',
+        headers={"Content-Type": "text/plain"}
+    )
+
+
+if __name__ == '__main__':
+    extirpate()

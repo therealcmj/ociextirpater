@@ -1,0 +1,11 @@
+schema_version: 20180708
+name: ociextirpater
+version: 0.0.15
+runtime: python
+build_image: fnproject/python:3.11-dev
+run_image: fnproject/python:3.11
+entrypoint: /python/bin/fdk /function/ociextirpate.py handler
+memory: 256
+timeout: 300
+config:
+  EXTFN_RESOURCE_PRINCIPAL: "TRUE"
