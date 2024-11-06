@@ -13,6 +13,44 @@ class OCIClient:
     isRegional = True
     searches_are_recursive = False
 
+    def shouldSkipTagged(self,found_object):
+        logging.debug("Checking tag")
+
+        taggedValue = None
+
+        # TODO: I feel like these two can be combined But later
+        if self.config.skiptagged.isDefined():
+            logging.debug("Checking for defined tag")
+            if self.config.skiptagged.tagName() in found_object.defined_tags[self.config.skiptagged.tagNamespace()].keys():
+                logging.debug("Object has defined tag with name '{}' . '{}'".format(self.config.skiptagged.tagNamespace(), self.config.skiptagged.tagName()))
+                taggedValue = found_object.defined_tags[self.config.skiptagged.tagNamespace()].get(self.config.skiptagged.tagName())
+            else:
+                logging.debug("Object is not tagged with defined tag '{}' . '{}'".format(self.config.skiptagged.tagNamespace(), self.config.skiptagged.tagName()))
+                return False
+
+        else:
+            logging.debug("Checking for freeform tag")
+            if self.config.skiptagged.tagName() in found_object.freeform_tags.keys():
+                logging.debug("Object has tag with name '{}'".format(self.config.skiptagged.tagName()))
+                taggedValue = found_object.freeform_tags.get(self.config.skiptagged.tagName())
+            else:
+                logging.debug("Object is not tagged with freeform tag {}".format(self.config.skiptagged.tagName))
+                return False
+
+        if not self.config.skiptagged.tagValue():
+            logging.debug("Value of tag does not need to be checked")
+            return True
+        else:
+            logging.debug("Comparing configured value '{}' to actual tag value '{}'".format( self.config.skiptagged.tagValue(), taggedValue))
+            if self.config.skiptagged.tagValue() == taggedValue:
+                logging.debug("Values match")
+                return True
+            else:
+                logging.debug("Values do NOT match")
+                return False
+
+        logging.error("I should not have gotten here")
+        pass
 
     def _init_regional_client(self,ociconfig,region):
         logging.debug("Initializing {} client for region {}".format(self.clientClass.__name__, region))
@@ -156,6 +194,8 @@ class OCIClient:
                        found_object.lifecycle_state == "TERMINATING"
                       )
                 ):
+                    logging.debug("skipping")
+                elif self.config.skiptagged and self.shouldSkipTagged(found_object):
                     logging.debug("skipping")
                 else:
                     delete = True

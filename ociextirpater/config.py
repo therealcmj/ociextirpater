@@ -10,6 +10,35 @@ class config:
     ociconfig = None
     threads = 1
 
+    class tagCheck:
+        _isDefined = False
+        _tagNamespace = None
+        _tagName = None
+        _tagValue = None
+
+        def __init__(self, skiptag):
+            # defined tags always have a namespace + dot + name
+            self._isDefined = "." in skiptag
+            if self._isDefined:
+                (self._tagNamespace, self._tagName) = skiptag.split(".")
+            else:
+                self._tagName = skiptag
+
+            if "=" in self._tagName:
+                (self._tagName, self._tagValue) = self._tagName.split("=")
+        def isDefined(self):
+            return self._isDefined
+
+        def tagNamespace(self):
+            return self._tagNamespace
+        def tagName(self):
+            return self._tagName
+
+        def tagValue(self):
+            return self._tagValue
+
+    skiptagged = None
+
     home_region = None
     regions = []
 
@@ -80,7 +109,6 @@ class config:
     
 
     def get_args(self) -> argparse.Namespace:
-        # parser = argparse.ArgumentParser(formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=80, width=130))
         parser = argparse.ArgumentParser()
 
         # I'm going to use most of the same arguments as OCI SuperDelete
@@ -88,19 +116,16 @@ class config:
         parser.add_argument('-cp', default="DEFAULT", dest='config_profile', help='Config Profile inside the config file')
         parser.add_argument('-ip', action='store_true', default=False, dest='is_instance_principal', help='Use Instance Principals for Authentication')
         parser.add_argument('-dt', action='store_true', default=False, dest='is_delegation_token', help='Use Delegation Token for Authentication')
-        # parser.add_argument('-log', default="log.txt", dest='log_file', help='output log file')
         parser.add_argument('-log', dest='log_file', help='output log file')
         parser.add_argument('-force', action='store_true', default=False, dest='force', help='force delete without confirmation')
         parser.add_argument('-debug', action='store_true', default=False, dest='debug', help='Enable debug')
+        parser.add_argument('-skip_tagged', dest='skip_tagged', help='Skip resources tagged specific ways [namespace.]name[=value]')
         parser.add_argument('-skip_delete_compartment', action='store_true', default=False, dest='skip_delete_compartment', help='Skip Deleting the compartment at the end')
         parser.add_argument("-rg", dest='regions', help="Regions to delete comma separated (defaults to all subscribed regions)")
         parser.add_argument("-c", dest='compartment', help="top level compartment id to delete")
         parser.add_argument("-o", dest="objects",help="Object catagories to work on. See docs for info")
         parser.add_argument("-t", dest="threads",default=-1, type=int, help="Number of threads")
         cmd = parser.parse_args()
-        # if help:
-        #     parser.print_help()
-        #     # sys.exit(-1)
         return cmd
     
     def get_env_vars(self, cmd: argparse.Namespace) -> argparse.Namespace:
@@ -307,3 +332,11 @@ class config:
 
         if cmd.threads != -1:
             logging.warning("Threading design is under active development and WILL be changed in the future.")
+
+        if cmd.skip_tagged:
+            self.skiptagged = self.tagCheck( cmd.skip_tagged )
+            # logging.info("Resources tagged with '{}' will be skipped during deletion".format(self.skiptagged))
+            logging.info("Resources tagged with '{}' will be skipped during deletion".format(cmd.skip_tagged))
+
+
+        return
