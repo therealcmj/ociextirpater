@@ -77,6 +77,7 @@ class OCIClient:
         self._init_regional_client(config.ociconfig, config.home_region)
 
         # if the service IS a regional service then we need one client for each region
+        # this was a good idea. But turns out that DNS as a service has both Global and Regional aspects
         if self.isRegional:
             logging.debug( "Initializing regional OCI clients for {}".format( self.clientClass.__name__))
             for region in self.config.regions:
@@ -118,10 +119,10 @@ class OCIClient:
 
         if self.searches_are_recursive:
             logging.debug("Searches for {} are recursive. No need to iterate all child compartments.".format( self.service_name ) )
-            compartments_to_search = [self.config.compartment]
+            compartments_to_search = self.config.compartments
 
         for this_compartment in compartments_to_search:
-            if this_compartment == self.config.compartment:
+            if this_compartment in self.config.compartments:
                 logging.debug( "findAndDeleteAllInCompartment on main compartment {}".format(this_compartment))
             else:
                 logging.debug( "findAndDeleteAllInCompartment on child compartment {}".format( this_compartment ))

@@ -3,8 +3,7 @@ import argparse
 import os
 
 class config:
-
-    compartment = None
+    compartments = []
     all_compartments = []
     signer = None
     ociconfig = None
@@ -122,7 +121,7 @@ class config:
         parser.add_argument('-skip_tagged', dest='skip_tagged', help='Skip resources tagged specific ways [namespace.]name[=value]')
         parser.add_argument('-skip_delete_compartment', action='store_true', default=False, dest='skip_delete_compartment', help='Skip Deleting the compartment at the end')
         parser.add_argument("-rg", dest='regions', help="Regions to delete comma separated (defaults to all subscribed regions)")
-        parser.add_argument("-c", dest='compartment', help="top level compartment id to delete")
+        parser.add_argument("-c", dest='compartment', action="append", help="top level compartment id to delete")
         parser.add_argument("-o", dest="objects",help="Object catagories to work on. See docs for info")
         parser.add_argument("-t", dest="threads",default=-1, type=int, help="Number of threads")
         cmd = parser.parse_args()
@@ -187,7 +186,7 @@ class config:
         if cmd.debug:
             rootLogger.setLevel("DEBUG")
             logging.debug("Log level set to DEBUG")
-            logging.debug(f'Arguement namespace: {cmd}')
+            logging.debug(f'Argument namespace: {cmd}')
             logging.debug(f'Environment variables: {dict(os.environ)}')
 
 
@@ -251,44 +250,52 @@ class config:
         logging.info("Signer prepared")
 
         # Compartment config
-        self.compartment = cmd.compartment
-        logging.debug( "Root compartment set to '{}'".format( self.compartment ) )
+        # "set()" filters out dupes - so we only look up the compartment once
+        self.compartments = set(cmd.compartment)
 
         # let's get the compartment info and show it
         self.identity_client = oci.identity.IdentityClient(self.ociconfig, signer=self.signer)
-        try:
-            compartment_name = self.identity_client.get_compartment(self.compartment).data.name
-            logging.info(
-                "Extirpating resources in compartment '{}' (OCID {})".format(compartment_name, self.compartment))
-        except:
-            logging.error("Failed to get root compartment")
-            raise Exception
+        for compartment in self.compartments:
+            try:
+                compartment_name = self.identity_client.get_compartment(compartment).data.name
+                logging.info("Extirpating resources in compartment '{}' (OCID {})".format(compartment_name, compartment))
+                self.all_compartments.append(compartment)
+            except:
+                logging.error("Failed to get root compartment {}".format(compartment))
+                raise Exception
 
-        # then get a list of the child compartments
+        # then get a list of the child compartments of the compartments
         # I could do this recursively but I like to challenge myself sometimes
         logging.info("Getting child compartments")
-        compartments_to_traverse = [ self.compartment ]
-        self.all_compartments.append( self.compartment )
+        compartments_to_traverse = self.compartments
         while compartments_to_traverse:
-            for c in compartments_to_traverse:
-                compartments_to_traverse.remove(c)
-                found = oci.pagination.list_call_get_all_results(self.identity_client.list_compartments,
-                                                                 c,
-                                                                 **{
-                                                                     "lifecycle_state": "ACTIVE"}
-                                                                 ).data
-                logging.debug( "Found {} child compartments".format( len(found) ) )
-                for x in found:
-                    logging.debug("Found compartment {} with lifecycle_state {}".format(x.id,x.lifecycle_state))
-                    if x.lifecycle_state == "ACTIVE":
-                        compartments_to_traverse.append(x.id)
-                        self.all_compartments.append(x.id)
+            c = compartments_to_traverse.pop()
+            logging.debug("Getting child compartments of {}".format(c))
+            found = oci.pagination.list_call_get_all_results(self.identity_client.list_compartments,
+                                                             c,
+                                                             **{
+                                                                 "lifecycle_state": "ACTIVE"}
+                                                             ).data
+            logging.debug( "Found {} child compartments".format( len(found) ) )
+            for x in found:
+                logging.debug("Found compartment {} with lifecycle_state {}".format(x.id,x.lifecycle_state))
+
+                # this feels redundant - does the search above ever return non-ACTIVE compartments? Hopefully no
+                if x.lifecycle_state == "ACTIVE":
+                    if x.id in compartments_to_traverse:
+                        logging.debug("Compartment {} already in traversal list".format(x.id))
                     else:
-                        logging.debug("skipping")
-                logging.info("Found {} compartments so far".format( len(self.all_compartments)))
+                        compartments_to_traverse.add(x.id)
 
-        logging.info("{} compartments will be extirpated".format(len(self.all_compartments)))
+                    if x.id in self.all_compartments:
+                        logging.debug("Compartment {} already in 'all compartments' list".format(x.id))
+                    else:
+                        self.all_compartments.append(x.id)
+                else:
+                    logging.debug("skipping")
+            logging.info("Found {} compartments so far".format( len(self.all_compartments)))
 
+        logging.info("Found a total of {} compartments to extirpate".format(len(self.all_compartments)))
 
         # regions
         requested_regions = None
@@ -337,6 +344,5 @@ class config:
             self.skiptagged = self.tagCheck( cmd.skip_tagged )
             # logging.info("Resources tagged with '{}' will be skipped during deletion".format(self.skiptagged))
             logging.info("Resources tagged with '{}' will be skipped during deletion".format(cmd.skip_tagged))
-
 
         return
