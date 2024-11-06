@@ -34,7 +34,7 @@ class OCIClient:
                 logging.debug("Object has tag with name '{}'".format(self.config.skiptagged.tagName()))
                 taggedValue = found_object.freeform_tags.get(self.config.skiptagged.tagName())
             else:
-                logging.debug("Object is not tagged with freeform tag {}".format(self.config.skiptagged.tagName))
+                logging.debug("Object is not tagged with freeform tag {}".format(self.config.skiptagged.tagName()))
                 return False
 
         if not self.config.skiptagged.tagValue():

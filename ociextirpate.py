@@ -4,8 +4,6 @@ import io
 import importlib
 import logging
 
-from fdk import response
-
 __requires__ = 'oci==2.78.0'
 
 def extirpate():
@@ -49,6 +47,7 @@ def extirpate():
 def handler(ctx, data: io.BytesIO = None):
 
     extirpate()
+    from fdk import response
 
     return response.Response(
         ctx, response_data='Finished extirpating',
