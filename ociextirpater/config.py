@@ -131,7 +131,9 @@ class config:
         prefix = os.getenv('EXTIRPATER_PREFIX', self.var_prefix)
 
         # Required
-        cmd.compartment = os.getenv(f'{prefix}_COMPARTMENT', cmd.compartment)
+        # The compartment variable needs to be a list derived from a comma separated string
+        if os.getenv(f'{prefix}_COMPARTMENT'):
+            cmd.compartment = os.getenv(f'{prefix}_COMPARTMENT').split(',')
 
         cmd.config_file = os.getenv(f'{prefix}_CONFIG_FILE', cmd.config_file)
         cmd.config_profile = os.getenv(f'{prefix}_CONFIG_PROFILE', cmd.config_profile)
