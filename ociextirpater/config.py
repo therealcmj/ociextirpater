@@ -107,7 +107,7 @@ class config:
         self.process(args)
     
 
-    def get_args(self) -> argparse.Namespace:
+    def get_args(self):
         parser = argparse.ArgumentParser()
 
         # I'm going to use most of the same arguments as OCI SuperDelete
@@ -127,7 +127,7 @@ class config:
         cmd = parser.parse_args()
         return cmd
     
-    def get_env_vars(self, cmd: argparse.Namespace) -> argparse.Namespace:
+    def get_env_vars(self, cmd):
         prefix = os.getenv('EXTIRPATER_PREFIX', self.var_prefix)
 
         # Required
@@ -153,7 +153,7 @@ class config:
         return cmd
     
     # Is a required argument missing? Fail and let the user know
-    def validate(self, cmd: argparse.Namespace) -> tuple[bool, str]:
+    def validate(self, cmd):
         if not cmd.compartment: return (False, 'compartment')
 
         return (True, '')
@@ -176,7 +176,7 @@ class config:
 
         return ns
 
-    def process(self, cmd: argparse.Namespace):
+    def process(self, cmd):
 
         # process the logging arguments first
         rootLogger = logging.getLogger()
