@@ -50,7 +50,7 @@ class config:
     categories_to_delete =  [
                                 "cloudguard",
                                 "managementdashboard",
-                                "managementagent"
+                                "managementagent",
                                 "monitoring",
                                 "events",
                                 "notifications",
