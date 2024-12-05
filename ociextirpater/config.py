@@ -94,6 +94,7 @@ class config:
                                 "vss",
                                 "waf",
                                 # "identity",
+                                "compartments",
     ]
 
 

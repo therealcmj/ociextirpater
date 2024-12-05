@@ -86,8 +86,28 @@ Use [Resources Scheduler](https://docs.oracle.com/en-us/iaas/Content/resource-sc
 
 ## More info
 
+### Blog post and more information
 Check out my blog post at
 <https://www.ateam-oracle.com/post/cleanup-an-oci-compartment>
+
+### Special cases
+
+#### Compartments
+Please note that deleting a compartment (1) can take up to 2 hours and (2) that you can only queue up to 5 deletions
+at a time.
+
+In order to help customers avoid problems this script treats compartments as a special case. When deleting compartments
+the script:
+* requests deletion of only 2 compartments per run
+* marks a (theoretically) empty compartment with the freeform tag `ExtirpateAttempted` before attempting to delete it
+* skips any compartments with the above tag
+
+You can adjust this behavior by editing `ociextirpater/ociclients/compartments.py`.
+
+This is generally not an issue for me and my team because we have this script running as a regularly scheduled job.
+Even if we delete only 2 compartments each day eventually every empty compartment is removed. Or as they say "it'll
+just work itself out naturally".
+
 
 ## Inspiration
 
