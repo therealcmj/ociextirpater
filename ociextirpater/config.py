@@ -93,7 +93,7 @@ class config:
                                 "stream",
                                 "vss",
                                 "waf",
-                                # "identity",
+                                "identity",
                                 "compartments",
     ]
 
