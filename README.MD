@@ -90,6 +90,31 @@ Use [Resources Scheduler](https://docs.oracle.com/en-us/iaas/Content/resource-sc
 Check out my blog post at
 <https://www.ateam-oracle.com/post/cleanup-an-oci-compartment>
 
+### Available Arguments
+```
+usage: ociextirpate.py [-h] [-cf CONFIG_FILE] [-cp CONFIG_PROFILE] [-ip] [-dt] [-log LOG_FILE] [-force]
+                       [-debug] [-skip_tagged SKIP_TAGGED] [-skip_delete_compartment] [-rg REGIONS]
+                       [-c COMPARTMENT] [-o OBJECTS] [-t THREADS]
+
+options:
+  -h, --help            show this help message and exit
+  -cf CONFIG_FILE       OCI Config file
+  -cp CONFIG_PROFILE    Config Profile inside the config file
+  -ip                   Use Instance Principals for Authentication
+  -dt                   Use Delegation Token for Authentication
+  -log LOG_FILE         output log file
+  -force                force delete without confirmation
+  -debug                Enable debug
+  -skip_tagged SKIP_TAGGED
+                        Skip resources tagged specific ways [namespace.]name[=value]
+  -skip_delete_compartment
+                        Skip Deleting the compartment at the end
+  -rg REGIONS           Regions to delete comma separated (defaults to all subscribed regions)
+  -c COMPARTMENT        top level compartment id to delete
+  -o OBJECTS            Object catagories to work on. See docs for info
+  -t THREADS            Number of threads
+  ```
+
 ### Special cases
 
 #### Compartments
