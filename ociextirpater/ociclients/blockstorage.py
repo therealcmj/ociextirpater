@@ -36,8 +36,6 @@ class blockstorage( OCIClient ):
     objects = [
         {
             "function_list"      : "list_boot_volume_backups",
-            "kwargs_list"        : {
-                                   },
             "function_delete"    : "delete_boot_volume_backup",
             "name_singular"      : "Boot Volume Backup",
             "name_plural"        : "Boot Volume Backups",
@@ -45,8 +43,6 @@ class blockstorage( OCIClient ):
 
         {
             "function_list"      : "list_boot_volume_replicas",
-            "kwargs_list"        : {
-                                   },
             "function_delete"    : "delete_boot_volume_replica",
             "name_singular"      : "Boot Volume Replica",
             "name_plural"        : "Boot Volume Replicas",
@@ -54,8 +50,6 @@ class blockstorage( OCIClient ):
 
         {
             "function_list": "list_boot_volumes",
-            "kwargs_list": {
-            },
             "function_delete": "delete_boot_volume",
             "name_singular": "Boot Volume",
             "name_plural": "Boot Volumes",
@@ -63,8 +57,6 @@ class blockstorage( OCIClient ):
 
         {
             "function_list"      : "list_block_volume_replicas",
-            "kwargs_list"        : {
-                                   },
             "function_delete"    : "delete_block_volume_replicas",
             "name_singular"      : "Block Volume Replica",
             "name_plural"        : "Block Volume Replicas",
@@ -72,8 +64,6 @@ class blockstorage( OCIClient ):
 
         {
             "function_list"      : "list_volume_backup_policies",
-            "kwargs_list"        : {
-                                   },
             "function_delete"    : "delete_volume_backup_policy",
             "name_singular"      : "Block Volume Backup Policy",
             "name_plural"        : "Block Volume Backup Policies",
@@ -81,8 +71,6 @@ class blockstorage( OCIClient ):
 
         {
             "function_list"      : "list_volume_backups",
-            "kwargs_list"        : {
-                                   },
             "function_delete"    : "delete_volume_backup",
             "name_singular"      : "Volume Backup",
             "name_plural"        : "Volume Backups",
@@ -101,8 +89,6 @@ class blockstorage( OCIClient ):
 
         {
             "function_list"      : "list_volume_group_backups",
-            "kwargs_list"        : {
-                                   },
             "function_delete"    : "delete_volume_group_backup",
             "name_singular"      : "Volume Group Backup",
             "name_plural"        : "Volume Group Backups",
@@ -110,8 +96,6 @@ class blockstorage( OCIClient ):
 
         {
             "function_list"      : "list_volume_groups",
-            "kwargs_list"        : {
-                                   },
             "function_delete"    : "delete_volume_group",
             "name_singular"      : "Volume Group",
             "name_plural"        : "Volume Groups",
@@ -119,20 +103,8 @@ class blockstorage( OCIClient ):
 
         {
             "function_list"      : "list_volumes",
-            "kwargs_list"        : {
-                                   },
             "function_delete"    : "delete_volume",
             "name_singular"      : "Volume",
             "name_plural"        : "Volumes",
         },
-
-        # {
-        #     # "formatter"          : lambda instance: "XXX instance with OCID {} / name '{}' is in state {}".format( instance.id, instance.name, instance.lifecycle_state ),
-        #     "function_list"      : "list_xxx",
-        #     "kwargs_list"        : {
-        #                            },
-        #     "function_delete"    : "delete_xxx",
-        #     "name_singular"      : "XXX",
-        #     "name_plural"        : "XXXXs",
-        # },
     ]

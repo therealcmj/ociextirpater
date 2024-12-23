@@ -172,7 +172,7 @@ class OCIClient:
                         logging.info(object["formatter"](found_object))
                     except Exception as e:
                         logging.error(
-                            "Exception using custom formatter to log one line description of object - please report to developer")
+                            "Exception using custom formatter to log one line description of object - please open an issue on GitHub")
                         logging.info(found_object)
                 else:
                     try:
@@ -181,7 +181,7 @@ class OCIClient:
                                                                                          found_object.display_name,
                                                                                          found_object.lifecycle_state))
                     except Exception as e:
-                        logging.error("Exception logging one line description of object - please report to developer")
+                        logging.error("Exception logging one line description of object - please open an issue on GitHub")
                         logging.info(found_object)
 
                 # Assume we're not supposed to delete
