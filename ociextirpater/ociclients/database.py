@@ -1,3 +1,5 @@
+import logging
+
 import oci
 from ociextirpater.OCIClient import OCIClient
 
@@ -6,20 +8,12 @@ class database( OCIClient ):
     clientClass = oci.database.DatabaseClient
 
     objects = [
-        # {
-        #     "function_list"      : "list_autonomous_databases",
-        #     "function_delete"    : "delete_autonomous_database",
-        #     "name_singular"      : "Autonomous Database",
-        #     "name_plural"        : "Autonomous Databases",
-        # },
-        #
-        # {
-        #     # "function_list"      : "list_backups",
-        #     "function_delete"    : "delete_backup",
-        #     "name_singular"      : "Database Backup",
-        #     "name_plural"        : "Database Backups",
-        # },
-        #
+        {
+            "name_singular"      : "Database Backup",
+            "name_plural"        : "Database Backups",
+            "function_delete"    : "delete_backup",
+        },
+
         # {
         #     "function_list"      : "list_backup_destinations",
         #     "function_delete"    : "delete_backup_destination",
@@ -40,6 +34,12 @@ class database( OCIClient ):
         #     "name_singular"      : "Database",
         #     "name_plural"        : "Databases",
         # },
+
+        {
+            "name_singular"      : "Autonomous Database Backup",
+            "name_plural"        : "Autonomous Database Backups",
+            "function_delete"    : "delete_autonomous_database_backup",
+        },
 
         {
             "function_list"      : "list_autonomous_container_databases",
@@ -70,6 +70,12 @@ class database( OCIClient ):
             return oci.pagination.list_call_get_all_results(
                 getattr((self.clients[region]), "list_backups"),
                 **{"compartment_id":this_compartment}).data
+
+        if o["name_plural"] == "Autonomous Database Backups":
+            b = oci.pagination.list_call_get_all_results(
+                getattr((self.clients[region]), "list_autonomous_database_backups"),
+                **{"compartment_id":this_compartment}).data
+            return b
 
         # if o["name_plural"] == "Databases":
         #     return oci.pagination.list_call_get_all_results(
