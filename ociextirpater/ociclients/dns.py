@@ -4,6 +4,8 @@ import oci
 from ociextirpater.OCIClient import OCIClient
 
 class dns( OCIClient ):
+    # isRegional = False
+
     service_name = "DNS"
     clientClass = oci.dns.DnsClient
 
@@ -28,11 +30,9 @@ class dns( OCIClient ):
         {
             "formatter": lambda view: "DNS View name '{}' with id {} is in state {}".format(view.display_name, view.id, view.lifecycle_state),
             "function_list"      : "list_views",
-            # "kwargs_list"        : {
-            #                             # we are assuming that there are no views in an UPDATING state
-            #                             # TODO: figure out if that's a use case we need to address
-            #                             "lifecycle_state" : ["ACTIVE"]
-            #                        },
+            "kwargs_list"        : {
+                                        "lifecycle_state" : "ACTIVE"
+                                   },
             "check2delete"       : lambda found: not( hasattr(found,"is_protected") and found.is_protected ),
             "function_delete"    : "delete_view",
             "name_singular"      : "DNS view",
@@ -80,6 +80,7 @@ class dns( OCIClient ):
                     # endpoints.extend(en)
                     # the result doesn't have the resolver ID
                     for e in en:
+                        logging.debug("Endpoint named {} found for resolver {}".format(e.name, resolver.id))
                         endpoints.append({
                             "name": e.name,
                             "endpoint_id": resolver.id
@@ -93,7 +94,8 @@ class dns( OCIClient ):
         if object["name_plural"] == "DNS Resolver Endpoints":
             # DNS Resolver Endpoints
             f = getattr((self.clients[region]), "delete_resolver_endpoint")
-            f( found_object.endpoint_id, found_object.name )
+            logging.info( "Deleting {}".format(object["name_singular"]) )
+            f( found_object["endpoint_id"], found_object["name"] )
             return
 
         raise NotImplementedError

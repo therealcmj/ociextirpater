@@ -71,7 +71,7 @@ class config:
                                 "database",
                                 "nosql",
                                 "mysql",
-                                #"dns",
+                                "dns",
                                 "functions",
                                 "objectstore",
                                 "loadbalancers",
