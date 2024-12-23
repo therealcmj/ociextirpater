@@ -9,24 +9,16 @@ class objectstore( OCIClient ):
 
     namespace = None
 
-    # def list_buckets(self, region, o, this_compartment, **kwargs ):
-    #     os = oci.pagination.list_call_get_all_results(getattr((self.clients[region]), "list_buckets"),
-    #                                                   self.namespace,
-    #                                                   this_compartment,
-    #                                                   **kwargs).data
-
     objects = [
         {
-            # "function_list"    : None,
-            "kwargs_list"      : {
-                                 },
-            # this is an example of a lambda function to filter out objects with the field "foo" set to "XXX"
-            # "filter_func"      : lambda o: not o["foo"] == "XXX",
-            # "function_delete"  : None,
             "name_singular"    : "Object Store bucket",
             "name_plural"      : "Object Store buckets",
             "formatter"        : lambda bucket: "Bucket with name '{}'".format(bucket.name),
-            "check2delete"     : lambda bucket: True,
+            # Why *did* I have this?
+            # Buckets don't have a lifecycle state. And originally I didn't have hasattr() to check
+            # for that attribute. So this lambda function was here to avoid an exception being thrown.
+            # Once I added hasattr() to check for lifecycle state on the object this become unnecessary.
+            # "check2delete"     : lambda bucket: True,
             "children"         : [
                                     {
                                         "function_list"  : "list_replication_policies",
@@ -84,17 +76,13 @@ class objectstore( OCIClient ):
     def delete_object(self, oci_object, region, object):
         f = None
         if oci_object["name_singular"] == "Object Store bucket":
-            logging.debug("Deleting object lifecycle policy")
-            f = getattr((self.clients[region]), "delete_object_lifecycle_policy")
-            f( self.namespace, object.name )
-
             # child objects:
             for child in oci_object["children"]:
                 logging.debug( "Listing {} in bucket {}".format( child["name_plural"], object.name ))
                 kwargs = {}
                 if hasattr( child, "kwargs_list"):
                     kwargs = child["kwargs_list"]
-                logging.debug("Getting a list of all objects in bucket")
+                logging.debug("Getting a list of all {} objects in bucket".format(child["name_singular"]))
                 xs = oci.pagination.list_call_get_all_results(  getattr((self.clients[region]), child["function_list"]),
                                                                 self.namespace,
                                                                 object.name,
@@ -105,21 +93,28 @@ class objectstore( OCIClient ):
                 if child["name_plural"] == "Objects":
                     # then we need to do something special
                     logging.info("Deleting objects in bucket")
-                    i = 0
-                    for obj in xs.objects:
-                        logging.debug("Deleting {}".format(obj.name))
-                        df( self.namespace, object.name, obj.name )
-                        i = i+1
-                        if 0 == i % 100:
-                            logging.info("Deleted {} objects from bucket so far".format(i))
+
+                    import concurrent
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+                        for obj in xs.objects:
+                            future = executor.submit(df, self.namespace, object.name, obj.name )
 
                 else:
                     for x in xs:
                         if child["name_singular"] == "Object Store multi-part upload":
                             df(self.namespace, object.name, x.id)
+                        elif child["name_singular"] == "Object Store Retention rule":
+                            logging.debug("Retention rule is a special case - trying to delete but it may fail")
+                            try:
+                                df(self.namespace, object.name, x.id )
+                            except:
+                                logging.debug("delete failed, but continuing...")
                         else:
                             df( self.namespace, object.name, x.id )
 
+            logging.debug("Deleting object lifecycle policy")
+            f = getattr((self.clients[region]), "delete_object_lifecycle_policy")
+            f( self.namespace, object.name )
 
             f = getattr((self.clients[region]), "delete_bucket")
             logging.debug("calling delete method")
