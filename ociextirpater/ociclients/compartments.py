@@ -6,6 +6,13 @@ from ociextirpater.OCIClient import OCIClient
 numDeletedCompartments = 0
 maxCompartmentsToDelete = 2
 
+
+def findAllInCompartment(self, region, o, this_compartment, **kwargs):
+    if numDeletedCompartments >= maxCompartmentsToDelete:
+        logging.info("Maximum number of compartments to delete has been reached. Skipping this and all subsequent compartments during this run.")
+        return None
+    return super( region, o, this_compartment, **kwargs)
+
 def checkIt(c, compartment):
     # leaky abstractions are leaky
     # if c.numDeletedCompartments >= c.maxCompartmentsToDelete:
