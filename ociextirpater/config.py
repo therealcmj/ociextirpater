@@ -75,6 +75,7 @@ class config:
                                 "dns",
                                 "functions",
                                 "objectstore",
+                                "fss",
                                 "loadbalancers",
                                 "nwloadbalancers",
                                 "certificates",
