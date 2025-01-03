@@ -188,6 +188,7 @@ class OCIClient:
                 delete = False
                 if "check2delete" in object:
                     delete = object["check2delete"](found_object)
+                    logging.debug("check2delete function returned {}".format(delete))
                 # elif found_object.lifecycle_state == "DELETED" or found_object.lifecycle_state == "DELETING":
                 elif (hasattr(found_object, "lifecycle_state") and
                       (found_object.lifecycle_state == "DELETED" or
@@ -202,7 +203,9 @@ class OCIClient:
                 else:
                     delete = True
 
-                if delete:
+                if not delete:
+                    logging.debug("Not deleting")
+                else:
                     logging.debug("Object will be deleted")
                     try:
                         # in some cases there are things we need to do before deleting.
