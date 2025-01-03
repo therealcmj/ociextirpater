@@ -32,10 +32,9 @@ class identity( OCIClient ):
         {
             "name_singular"      : "Tag Default",
             "name_plural"        : "Tag Defaults",
-            # "check2delete"       : lambda image: hasattr(image, "compartment_id") and image.compartment_id != None,
 
-            # "formatter"          : lambda instance: "XXX instance with OCID {} / name '{}' is in state {}".format( instance.id, instance.name, instance.lifecycle_state ),
-            "function_delete"    : "delete_xxx",
+            "formatter"          : lambda tagdefault: "Tag Default with OCID {} is in state {}".format(tagdefault.id, tagdefault.lifecycle_state),
+            "function_delete"    : "delete_tag_default",
         },
 
     ]
@@ -47,8 +46,6 @@ class identity( OCIClient ):
             f( found_object.id, { "isRetired": True } )
             return
 
-        raise NotImplementedError
-
     def list_objects(self, o, region, this_compartment, **kwargs):
         if o["name_plural"] == "Tag Defaults":
             ret = []
@@ -57,7 +54,7 @@ class identity( OCIClient ):
             if len(tds):
                 logging.debug("Found {} tag defaults".format( len(tds) ))
                 for td in tds:
-                    ret.append( td.id )
+                    ret.append( td )
             return ret
 
         raise NotImplementedError
