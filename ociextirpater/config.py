@@ -68,6 +68,7 @@ class config:
                                 "bastion",
                                 "datasafe",
                                 "dbtools",
+                                "dbrecovery",
                                 "database",
                                 "nosql",
                                 "mysql",
