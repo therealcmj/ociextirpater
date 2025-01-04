@@ -60,10 +60,10 @@ class config:
                                 "ocilogging",
                                 "adm",
                                 "analytics",
-                                "aidocument",
-                                "ailanguage",
-                                "aispeech",
-                                "aivision",
+                                # "aidocument",
+                                # "ailanguage",
+                                # "aispeech",
+                                # "aivision",
                                 "apigateway",
                                 "bastion",
                                 "datasafe",
@@ -313,10 +313,31 @@ class config:
         else:
             logging.debug("Regions not specified on command line.")
 
+        # cmd.objects should really be catagories. But that ship has sailed
         if cmd.objects:
-            self.categories_to_delete = cmd.objects.split(",")
+            catsToDelete = []
 
+            # new feature - allow omitting objects by using a minus sign in front of the name
+            if "-" in cmd.objects or "+" in cmd.objects:
+                # TODO: allow people to be even more specific!
 
+                # ok so it's important to let users specify an order (for reasons, shut up)
+                for cat in cmd.objects.split(","):
+                    if cat == "none":
+                        # special case
+                        logging.debug("special case 'none' for categories")
+                        pass
+                    if cat == "default":
+                        catsToDelete += self.categories_to_delete
+                    if cat.startswith("-"):
+                        catsToDelete.remove(cat[1:])
+                    if cat.startswith("+"):
+                        catsToDelete.append(cat[1:])
+
+            else:
+                catsToDelete = cmd.objects.split(",")
+
+            self.categories_to_delete = catsToDelete
 
         logging.info("Getting subscribed regions...")
         regions = self.identity_client.list_region_subscriptions(self.ociconfig["tenancy"]).data
