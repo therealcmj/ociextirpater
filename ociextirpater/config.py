@@ -96,6 +96,7 @@ class config:
                                 "vss",
                                 "waf",
                                 "identity",
+                                "consoledashboards",
                                 "compartments",
     ]
 
