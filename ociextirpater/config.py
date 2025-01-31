@@ -64,6 +64,8 @@ class config:
                                 # "ailanguage",
                                 # "aispeech",
                                 # "aivision",
+                                "api",
+                                "apideployment",
                                 "apigateway",
                                 "bastion",
                                 "datasafe",
