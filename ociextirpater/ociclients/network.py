@@ -140,6 +140,7 @@ class network( OCIClient ):
             "name_singular"      : "public IP pool",
             "name_plural"        : "public IP pools",
         },
+
         {
             # "function_list"      : "list_public_ips",
             "function_delete"    : "delete_public_ip",
@@ -150,32 +151,38 @@ class network( OCIClient ):
         # then try to get rid of the subnets
         # this will take care of the default route table associated for the subnet
         {
-            "function_list": "list_subnets",
-            "function_delete": "delete_subnet",
-            "name_singular": "Subnet",
-            "name_plural": "Subnets",
+            "function_list"      : "list_subnets",
+            "function_delete"    : "delete_subnet",
+            "name_singular"      : "Subnet",
+            "name_plural"        : "Subnets",
         },
 
         # now get any extra (i.e. not default) route tables
         {
-            "function_list": "list_route_tables",
-            "function_delete": "delete_route_table",
-            "name_singular": "Networking route table",
-            "name_plural": "Networking route tables",
+            "function_list"      : "list_route_tables",
+            "function_delete"    : "delete_route_table",
+            "name_singular"      : "Networking route table",
+            "name_plural"        : "Networking route tables",
+        },
+        {
+            "function_list"      : "list_vlans",
+            "function_delete"    : "delete_vlan",
+            "name_singular"      : "Virtual LAN",
+            "name_plural"        : "Virtual LANs",
         },
 
         {
-            "function_list": "list_vcns",
-            "function_delete": "delete_vcn",
-            "name_singular": "VCN",
-            "name_plural": "VCNs",
+            "function_list"      : "list_vcns",
+            "function_delete"    : "delete_vcn",
+            "name_singular"      : "VCN",
+            "name_plural"        : "VCNs",
         },
 
         {
-            "function_list": "list_security_lists",
-            "function_delete": "delete_security_list",
-            "name_singular": "Networking security list",
-            "name_plural": "Networking security lists",
+            "function_list"      : "list_security_lists",
+            "function_delete"    : "delete_security_list",
+            "name_singular"      : "Networking security list",
+            "name_plural"        : "Networking security lists",
         },
 
         {
@@ -184,7 +191,6 @@ class network( OCIClient ):
             "name_singular"        : "Network Security Group",
             "name_plural"          : "Network Security Groups",
         },
-
 
         # {
         #     # "formatter"          : lambda instance: "XXX instance with OCID {} / name '{}' is in state {}".format( instance.id, instance.name, instance.lifecycle_state ),
@@ -209,12 +215,6 @@ class network( OCIClient ):
             )
             f( found_object.id, newrules, **{})
 
-
-
-        if object["name_plural"] == "VCNs":
-            self.compositeClients[region].delete_vcn_and_wait_for_state(found_object.id,wait_for_states=[oci.core.models.Vcn.LIFECYCLE_STATE_TERMINATED])
-
-
     def list_objects(self, o, region, this_compartment, **kwargs):
         if o["name_plural"] == "Network Security Groups":
             return oci.pagination.list_call_get_all_results(
@@ -230,3 +230,11 @@ class network( OCIClient ):
         #         **{"compartment_id": this_compartment}).data
         else:
             raise NotImplementedError
+
+
+    def delete_object(self, object, region, found_object):
+        if object["name_plural"] == "VCNs":
+            self.compositeClients[region].delete_vcn_and_wait_for_state(found_object.id,wait_for_states=[oci.core.models.Vcn.LIFECYCLE_STATE_TERMINATED])
+            return
+
+        raise NotImplementedError
