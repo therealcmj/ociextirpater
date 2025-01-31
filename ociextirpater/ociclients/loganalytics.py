@@ -51,6 +51,19 @@ class loganalytics( OCIClient ):
             # "function_delete"    : "delete_log_analytics_log_group",
         },
 
+        {
+            "name_singular"      : "Log Analytics Source",
+            "name_plural"        : "Log Analytics Sources",
+            "formatter"          : lambda source: "Logging source with name '{}' (ID {}) system defined: {}".format(source.name, source.source_id, source.is_system),
+            "check2delete"       : lambda source: not source.is_system,
+            "function_list"      : "list_sources",
+            "kwargs_list"        : {
+                                        "is_system": "CUSTOM"
+                                   },
+
+            # "function_delete"    : "delete_xxx",
+        },
+
         # {
         #     # "formatter"          : lambda instance: "XXX instance with OCID {} / name '{}' is in state {}".format( instance.id, instance.name, instance.lifecycle_state ),
         #     "function_list"      : "list_xxx",
@@ -67,6 +80,13 @@ class loganalytics( OCIClient ):
                                                       self.namespace,
                                                       this_compartment,
                                                       **kwargs).data
+
+        # special case. sources doesn't include the compartment id. So add it to each result
+        if o["name_singular"] == "Log Analytics Source":
+            for i in range(0,len(os)):
+                logging.info("adding compartment")
+                os[i].compartment_id = this_compartment
+
         return os
 
     def delete_object(self, object, region, found_object):
@@ -80,6 +100,16 @@ class loganalytics( OCIClient ):
             return (self.clients[region]).delete_log_analytics_log_group(
                 self.namespace,
                 found_object.id
+            )
+
+        elif object["name_singular"] == "Log Analytics Source":
+            r = self.clients[region].get_source( self.namespace, found_object.name, found_object.compartment_id)
+            return (self.clients[region]).delete_source(
+                self.namespace,
+                found_object.name,
+                **{
+                    "if_match": r.headers["ETag"]
+                }
             )
 
         raise NotImplementedError
