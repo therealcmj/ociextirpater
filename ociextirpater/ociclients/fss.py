@@ -115,7 +115,7 @@ class fss( OCIClient ):
     def findAllInCompartment(self, region, o, this_compartment, **kwargs):
         total_result = []
 
-        if o["name_plural"] == "Exports" or o["name_plural" == "Snapshots"]:
+        if o["name_plural"] == "Exports" or o["name_plural"] == "Snapshots":
             kwargs = {
                 "compartment_id": this_compartment
             }
