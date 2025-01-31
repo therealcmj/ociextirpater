@@ -22,7 +22,7 @@ class consoledashboards( OCIClient ):
 
     def __init__(self,config):
         for region in config.regions:
-            logging.info("Getting ADs for region {}".format(region))
+            logging.info("Initializing Dashboard Client(s) {}".format(region))
             import oci.dashboard_service.dashboard_client_composite_operations
             rconfig = config.ociconfig
             rconfig["region"] = region
