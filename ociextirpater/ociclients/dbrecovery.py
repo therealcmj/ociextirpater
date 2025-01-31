@@ -21,9 +21,6 @@ class dbrecovery( OCIClient ):
             # don't try to delete pre-defined policies
             "check2delete"       : lambda policy: False == policy.is_predefined_policy,
             "function_list"      : "list_protection_policies",
-            "kwargs_list"        : {
-                                        "lifecycle_state": "ACTIVE"
-                                   },
             "function_delete"    : "delete_protection_policy",
         },
 
@@ -31,9 +28,6 @@ class dbrecovery( OCIClient ):
             "name_singular"      : "Recovery Service Subnet",
             "name_plural"        : "Recovery Service Subnets",
             "function_list"      : "list_recovery_service_subnets",
-            "kwargs_list"        : {
-                                        "lifecycle_state": "ACTIVE"
-                                   },
             "function_delete"    : "delete_recovery_service_subnet",
         },
     ]
