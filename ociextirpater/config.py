@@ -52,6 +52,7 @@ class config:
                                 "managementdashboard",
                                 "managementagent",
                                 "monitoring",
+                                "apm",
                                 "events",
                                 "notifications",
                                 "osms",
