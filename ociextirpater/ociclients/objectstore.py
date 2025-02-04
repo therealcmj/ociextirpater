@@ -102,7 +102,7 @@ class objectstore( OCIClient ):
                 else:
                     for x in xs:
                         if child["name_singular"] == "Object Store multi-part upload":
-                            df(self.namespace, object.name, x.id)
+                            df(x.namespace, x.bucket, x.object,x.upload_id)
                         elif child["name_singular"] == "Object Store Retention rule":
                             logging.debug("Retention rule is a special case - trying to delete but it may fail")
                             try:
