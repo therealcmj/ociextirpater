@@ -61,6 +61,8 @@ class config:
                                 "ocilogging",
                                 "adm",
                                 "analytics",
+                                "integration",
+                                "vb",
                                 # "aidocument",
                                 # "ailanguage",
                                 # "aispeech",
