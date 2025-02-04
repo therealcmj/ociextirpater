@@ -67,6 +67,7 @@ class config:
                                 # "ailanguage",
                                 # "aispeech",
                                 # "aivision",
+                                "digitalassistant",
                                 "api",
                                 "apideployment",
                                 "apigateway",
