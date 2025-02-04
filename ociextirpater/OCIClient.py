@@ -214,6 +214,8 @@ class OCIClient:
                         # (this is a contrived example since computes don't need to be stopped before being deleted)
                         # in those cases the predelete() function should do that
                         self.predelete(object, region, found_object)
+                    except NotImplementedError as nie:
+                        logging.info("No pre-delete implementation (this is OK)")
                     except Exception as e:
                         logging.error(
                             "Exception in pre-delete method. {} will not be deleted".format(object["name_singular"]))
