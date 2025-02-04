@@ -71,6 +71,7 @@ class config:
                                 "apideployment",
                                 "apigateway",
                                 "bastion",
+                                "goldengate",
                                 "datasafe",
                                 "dbtools",
                                 "dbrecovery",
