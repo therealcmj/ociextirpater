@@ -80,6 +80,8 @@ class config:
                                 "nosql",
                                 "mysql",
                                 "postgresql",
+                                "dataflow",
+                                "datascience",
                                 "dns",
                                 "functions",
                                 "objectstore",
