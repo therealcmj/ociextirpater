@@ -79,6 +79,7 @@ class config:
                                 "database",
                                 "nosql",
                                 "mysql",
+                                "postgresql",
                                 "dns",
                                 "functions",
                                 "objectstore",
