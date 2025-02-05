@@ -2,6 +2,8 @@ import logging
 import oci
 from ociextirpater.OCIClient import OCIClient
 
+
+# funny story - don't rename this "logging" for reasons!
 class ocilogging( OCIClient ):
     service_name = "Logging"
     clientClass = oci.logging.LoggingManagementClient
@@ -9,21 +11,18 @@ class ocilogging( OCIClient ):
 
     objects = [
         {
-            "function_list"      : "list_log_groups",
-            "function_delete"    : "delete_log_group",
-            "name_singular"      : "Logging Group",
-            "name_plural"        : "Logging Groups",
+            "name_singular"      : "Agent Config",
+            "name_plural"        : "Agent Configs",
+            "function_list"      : "list_unified_agent_configurations",
+            "function_delete"    : "delete_unified_agent_configuration",
         },
 
-        # {
-        #     # "formatter"          : lambda instance: "XXX instance with OCID {} / name '{}' is in state {}".format( instance.id, instance.name, instance.lifecycle_state ),
-        #     "function_list"      : "list_xxx",
-        #     "kwargs_list"        : {
-        #                            },
-        #     "function_delete"    : "delete_xxx",
-        #     "name_singular"      : "XXX",
-        #     "name_plural"        : "XXXXs",
-        # },
+        {
+            "name_singular"      : "Logging Group",
+            "name_plural"        : "Logging Groups",
+            "function_list"      : "list_log_groups",
+            "function_delete"    : "delete_log_group",
+        },
     ]
 
     def predelete(self,object,region,found_object):
@@ -36,3 +35,8 @@ class ocilogging( OCIClient ):
             for l in logs.data:
                 logging.debug("Deleting log id {}".format(l.id))
                 self.compositeClients[region].delete_log_and_wait_for_state(lgid,l.id,["SUCCEEDED","FAILED"])
+
+            return
+
+        raise NotImplementedError
+
