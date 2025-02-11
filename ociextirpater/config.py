@@ -68,6 +68,7 @@ class config:
                                 # "aispeech",
                                 # "aivision",
                                 "digitalassistant",
+                                "genaiagent",
                                 "api",
                                 "apideployment",
                                 "apigateway",
