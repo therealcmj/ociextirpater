@@ -80,6 +80,7 @@ class config:
                                 "database",
                                 "nosql",
                                 "mysql",
+                                "mysqlbackup",
                                 "postgresql",
                                 "dataflow",
                                 "datascience",
