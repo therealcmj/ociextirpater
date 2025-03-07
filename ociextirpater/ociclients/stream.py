@@ -32,6 +32,16 @@ class stream( OCIClient ):
                                                                                                               pool.lifecycle_state ),
             "function_delete"    : "delete_stream_pool",
         },
+
+        {
+            "name_singular"      : "Connect Harness",
+            "name_plural"        : "Connect Harnesses",
+            "function_list"      : "list_connect_harnesses",
+            "formatter"          : lambda harness: "Connect Harness with OCID {} / name '{}' is in state {}".format(harness.id, harness.name, harness.lifecycle_state),
+
+            "function_delete"    : "delete_connect_harness",
+        },
+
     ]
 
 
