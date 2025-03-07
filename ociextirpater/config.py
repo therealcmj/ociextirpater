@@ -52,6 +52,7 @@ class config:
                                 "managementdashboard",
                                 "managementagent",
                                 "monitoring",
+                                "stackmonitoring",
                                 "apm",
                                 "events",
                                 "notifications",
