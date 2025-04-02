@@ -54,6 +54,7 @@ class config:
                                 "monitoring",
                                 "stackmonitoring",
                                 "apm",
+                                "opsinsight",
                                 "events",
                                 "notifications",
                                 "osms",
