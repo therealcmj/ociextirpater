@@ -86,6 +86,7 @@ class config:
                                 "postgresql",
                                 "dataflow",
                                 "datascience",
+                                "datalabeling",
                                 "dns",
                                 "functions",
                                 "objectstore",
