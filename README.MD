@@ -115,6 +115,50 @@ options:
   -t THREADS            Number of threads
   ```
 
+### A Note About Threading
+
+... or "plz make it go fasterer"
+
+TL;DR: generally you don't need to fiddle with the threads command line argument.
+
+
+The command line option `-t` allows you to set the number of threads. You might think that more threads == more faster,
+and it is true up to a point. But only up to a point.
+
+Resources are often interdependent. For example, you can't delete a VCN until you delete the subnets. And you can't
+delete any network stuff until you delete the VNICs associated with compute instances, private endpoints, etc in that
+VCN. Working out all the interdependencies and cleaning them up in order is more complicated than you might think and
+is more in the realm of something you'd want to do with Resource Manaager vs a Python script (no matter how good).
+
+So I don't bother.
+
+Instead, I take a resource grouping (like database, compute, network, etc.) and do the cleanup in every region in
+parallel.
+
+in pseudocode that is
+
+* for each object grouping [e.g. compute]
+  * start a thread for each region [e.g. us-ashburn-1, us-phoenix-1]
+    * search and delete each object type [e.g. compute instance, compute image, capacity reservation]
+
+This works fairly well in that it's reasonably quick while still staying below the speed that causes you to reach
+API rate limits. But I am still experimenting with other models and this code and model is likely to change in the
+future.
+
+I default to setting the number of threads to the number of regions. So specifying a number larger than the number of
+regions I'm extirpating won't make the process go any faster. 
+
+There are 2 exceptions to this rule:
+1. Within a region I **do** delete Objects in Buckets in parallel.
+1. if you are using a debugger you will want to set threads to 0.
+    * Wait, zero? What do you mean zero?
+    * well, see if you set it to 1 I spin off a separate thread to do stuff
+    * if you set it to 0 I do my work "in line" without spinning off a thread
+    * and it is easier to understand what the heck is going on in a debugger with no extra threads
+ 
+
+
+
 ### Special cases
 
 #### Compartments
