@@ -52,6 +52,7 @@ class vss( OCIClient ):
             "name_plural"        : "VSS Container Scan results",
 
             "function_list"      : "list_container_scan_results",
+            "formatter"          : lambda csr: "Container Scan result with OCID {} ".format(csr.id),
             "function_delete"    : "delete_container_scan_result",
         },
 
