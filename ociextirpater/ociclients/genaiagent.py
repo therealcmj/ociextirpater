@@ -5,6 +5,18 @@ from ociextirpater.OCIClient import OCIClient
 class genaiagent( OCIClient ):
     service_name = "GenAI Agent"
     clientClass = oci.generative_ai_agent.GenerativeAiAgentClient
+    # compositeClientClass = oci.generative_ai_agent.GenerativeAiAgentClientCompositeOperations
+
+    def __init__(self,config):
+        super().__init__(config)
+        # gen AI agents are only in chicago, london, and frankfurt (today)
+        # TODO 1: move this logic up into OCIClient
+        # TODO 2: figure out how to detect if the service is available in the region and put THAT in the logic instead!
+        for k in list(self.clients.keys()):
+            if not k in [ "us-chicago-1", "uk-london-1", "eu-frankfurt-1"]:
+                logging.info("Gen AI Agent is not available in region {}. That region will be skipped".format(k))
+                self.clients.pop(k)
+
 
     objects = [
         {
@@ -49,5 +61,3 @@ class genaiagent( OCIClient ):
         return oci.pagination.list_call_get_all_results(
             getattr((self.clients[region]), o["function_list"]),
             **{"compartment_id":this_compartment}).data
-
-        # raise NotImplementedError
