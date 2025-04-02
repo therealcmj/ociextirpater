@@ -62,6 +62,7 @@ class config:
                                 "ocilogging",
                                 "adm",
                                 "analytics",
+                                "devops",
                                 "integration",
                                 "vb",
                                 # "aidocument",
