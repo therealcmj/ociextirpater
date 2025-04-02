@@ -111,6 +111,7 @@ class config:
                                 "stream",
                                 "vss",
                                 "waf",
+                                "ag",
                                 "identity",
                                 "consoledashboards",
                                 "compartments",
