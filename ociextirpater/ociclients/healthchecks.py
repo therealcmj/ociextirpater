@@ -19,19 +19,8 @@ class healthchecks( OCIClient ):
             "name_singular"      : "Ping Monitor",
             "name_plural"        : "Ping Monitors",
 
-            "function_list"      : "list_http_monitors",
+            "function_list"      : "list_ping_monitors",
             "formatter"          : lambda check: "Ping Monitor with OCID {} / name '{}'".format(check.id, check.display_name),
             "function_delete"    : "delete_ping_monitor",
         },
-
-        # {
-        #     "name_singular"      : "XXX",
-        #     "name_plural"        : "XXXXs",
-
-        #     "function_list"      : "list_xxx",
-        #     "kwargs_list"        : {
-        #                            },
-        #     "formatter"          : lambda instance: "XXX instance with OCID {} / name '{}' is in state {}".format( instance.id, instance.name, instance.lifecycle_state ),
-        #     "function_delete"    : "delete_xxx",
-        # },
     ]
