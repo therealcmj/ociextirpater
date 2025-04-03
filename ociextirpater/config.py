@@ -94,6 +94,7 @@ class config:
                                 "fss",
                                 "loadbalancers",
                                 "nwloadbalancers",
+                                "waa",
                                 "certificates",
                                 "compute",
                                 "cache",
