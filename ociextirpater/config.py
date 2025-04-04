@@ -80,6 +80,7 @@ class config:
                                 "datasafe",
                                 "dbtools",
                                 "dbrecovery",
+                                "dbmigration",
                                 "database",
                                 "nosql",
                                 "mysql",
