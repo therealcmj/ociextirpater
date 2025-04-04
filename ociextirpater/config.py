@@ -5,6 +5,7 @@ import os
 class config:
     compartments = []
     all_compartments = []
+    junkyard = None
     signer = None
     ociconfig = None
     threads = 1
@@ -148,6 +149,7 @@ class config:
         parser.add_argument("-c", dest='compartment', action="append", help="top level compartment id to delete")
         parser.add_argument("-o", dest="objects",help="Object catagories to work on. See docs for info")
         parser.add_argument("-t", dest="threads",default=-1, type=int, help="Number of threads")
+        parser.add_argument("--junkyard", dest="junkyard", help="Where to move things that cannot be immediately deleted but must instead be scheduled for deletion. e.g. KMS Vaults")
         cmd = parser.parse_args()
         return cmd
     
@@ -322,6 +324,26 @@ class config:
             logging.info("Found {} compartments so far".format( len(self.all_compartments)))
 
         logging.info("Found a total of {} compartments to extirpate".format(len(self.all_compartments)))
+
+        if ( "junkyard" in cmd ) and (cmd.junkyard != None ):
+            self.junkyard = cmd.junkyard
+            logging.info("Junkyard specified as {}".format(self.junkyard))
+
+            # check to see if the junkyard is inside the list of compartments to be extirpated
+            if self.junkyard in self.compartments:
+                logging.warning("Specified junkyard is included in the list of compartments to be extirpated")
+            else:
+
+                # check to make sure the junkyard is valid
+                try:
+                    logging.debug("attempting to read junkyard compartment")
+                    j = self.identity_client.get_compartment( self.junkyard )
+                    logging.debug("Junkyard compartment is named {}".format( j.data.name))
+                except Exception as e:
+                    logging.error("Exception retrieving information about specified junkyard. Aborting.")
+                    raise e
+
+
 
         # regions
         requested_regions = None
