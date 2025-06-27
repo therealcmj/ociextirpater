@@ -24,20 +24,19 @@ def extirpate():
     logging.info("{} clients".format( len(clients)))
 
     for client in clients:
-        logging.debug( "Importing {}".format(client))
-        my_module = importlib.import_module("ociextirpater.ociclients.%s" % client)
-        logging.debug( "Module name: {}".format( my_module.__name__ ))
-
-        logging.debug( "Getting {}".format( client ) )
-        cls = getattr( importlib.import_module("ociextirpater.ociclients.%s" % client), client )
-        logging.debug( "Name for {} is {}".format( client, cls.service_name ) )
-
-        logging.debug( "Instantiating" )
-        o = cls( cfg )
-        logging.debug("Instantiated OK")
-
-        # executor.submit(o.findAndDeleteAllInCompartment)
         try:
+            logging.debug( "Importing {}".format(client))
+            my_module = importlib.import_module("ociextirpater.ociclients.%s" % client)
+            logging.debug( "Module name: {}".format( my_module.__name__ ))
+
+            logging.debug( "Getting {}".format( client ) )
+            cls = getattr( importlib.import_module("ociextirpater.ociclients.%s" % client), client )
+            logging.debug( "Name for {} is {}".format( client, cls.service_name ) )
+
+            logging.debug( "Instantiating" )
+            o = cls( cfg )
+            logging.debug("Instantiated OK")
+
             o.findAndDeleteAllInCompartment()
         except Exception as e:
             logging.error("Exception caught")
