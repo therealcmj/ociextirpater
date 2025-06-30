@@ -40,7 +40,7 @@ def extirpate():
             o.findAndDeleteAllInCompartment()
         except Exception as e:
             logging.error("Exception caught")
-            logging.debug(e)
+            logging.error(e)
 
 
 def handler(ctx, data: io.BytesIO = None):

@@ -6,10 +6,10 @@ class ag( OCIClient ):
 
     class MyAccessGovernanceCPClient(oci.access_governance_cp.AccessGovernanceCPClient):
         def __init__(self, config, **kwargs):
-            super().__init__(config, **{
-                                            "service_endpoint":"https://access-governance.{}.oci.oraclecloud.com".format(config["region"])
-                                        }
-                             )
+            args = kwargs
+            args["service_endpoint"] =  "https://access-governance.{}.oci.oraclecloud.com".format(config["region"])
+            super().__init__(config, **args )
+
     clientClass = MyAccessGovernanceCPClient
 
     objects = [
