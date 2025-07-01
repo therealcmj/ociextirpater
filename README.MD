@@ -62,27 +62,11 @@ But if you **want** to run it from Cloud Shell that is supported:
 1. run "./ociextirpate.py -c ocid1.compartment.oc1..XXXX -dt"
    * replacing ocid1.compartment.oc1..XXXX with the compartment you want to clean
 
-### Running as a Function
+### Automated Deployment
 
-1. Set up a development environment based on the [Functions documentation](https://docs.oracle.com/en-us/iaas/Content/Functions/Tasks/functionsquickstartguidestop.htm).
-1. On Function Application *APP_NAME* or the underlying *ociextirpater* function, enter the following *Configurations*
+Use Terraform to deploy an Oracle Autonomous Linux VM running OCI Extirpater on a daily schedule. A compartment is designated for "cleanup" of resources that will be terminated by the script. Move resources to the "cleanup" compartment to be terminated on the next run, or move entire compartments and their contents to easily terminate all associated resources.
 
-   * **EXTFN_COMPARTMENT** for the compartment to extirpate, either standalone or as a comma separated string
-
-      * example: *ocid1.compartment.oc1..abcd,ocid1.compartment.oc1..1234*
-      * example: *ocid1.tenancy.oc1..abcd*
-
-   * (optional) **EXTIRPATER_PREFIX** if you want to use a different prefix than the default of **EXTFN**
-   * (optional) **EXTFN_REGIONS** a comma seperated list, for region(s) to extirpate *(default all subscribed regions)*
-   * (optional) **EXTFN_OBJECTS** for objects to extirpate
-   * (optional) **EXTFN_FORCE** to force deletion
-   * (optional) **EXTFN_DEBUG** to activate debug mode
-   * (optional) **EXTFN_SKIP_DELETE_COMPARTMENT** to skip deleting compartments
-
-1. Run `fn deploy --app {APP_NAME}`
-1. Run `fn invoke {APP_NAME} ociextirpater`
-
-Use [Resources Scheduler](https://docs.oracle.com/en-us/iaas/Content/resource-scheduler/home.htm), [OCI Events](https://docs.oracle.com/en-us/iaas/Content/Events/home.htm), or another method to automate invokation.
+[Learn how to deploy here](./deploy/README.md)
 
 ## More info
 
