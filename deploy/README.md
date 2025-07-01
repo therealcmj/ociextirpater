@@ -9,8 +9,11 @@
 3. Select compartment to extirpate (Not the same compartment as resources to be deployed in!).
 4. Optionally change the label to be applied to resources created by the stack.
 5. Add one or more SSH keys for shell access to the Extirpater instance if needed.
+  ![Resource Manager Configurations](./images/orm-2.png)
 6. Optionally select if you want to use a pre-existing VCN and Subnet.
 7. Save and Apply the Stack.
+  ![Resource Manager Stack Confirmation](./images/orm-3.png)
+  ![Resource Manager Plan Apply](./images/orm-4.png)
 
 ## Variables
 

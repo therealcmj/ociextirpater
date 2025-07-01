@@ -14,11 +14,10 @@ echo "#### Installing git ####"
 sudo yum install -y git
 
 echo "#### Cloning Extirpater Repository ####"
-git clone -b terraform --depth 1 https://github.com/flynnkc/ociextirpater.git $EXT_DIR # TODO change before merge
+git clone -b terraform --depth 1 https://github.com/therealcmj/ociextirpater.git $EXT_DIR
 
 echo "#### Setting Executables ####"
 chmod 550 $EXT_DIR/deploy/scripts/daily.sh
-chmod 550 $EXT_DIR/deploy/scripts/hourly.sh
 
 # Tested with Python 3.9.21
 echo "#### Creating Virtual Environment ####"

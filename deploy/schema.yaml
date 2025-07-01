@@ -9,7 +9,7 @@ variableGroups:
   - title: Main
     variables:
       - compartment_id
-      - extirpate_compartment
+      - cleanup_compartment
       - label
       - ssh_public_key
       - use_existing_network
@@ -35,10 +35,10 @@ variables:
     description: "Compartment to deploy Extirpater resources"
     required: true
 
-  extirpate_compartment:
-    title: Compartment to Extirpate
+  cleanup_compartment:
+    title: Compartment to be Extirpated
     type: oci:identity:compartment:id
-    description: "Compartment to run Extirpater on in tenancy (Recycle Bin Compartment)"
+    description: "Compartment to run Extirpater on in tenancy (Cleanup Compartment)"
     required: true
 
   label:
