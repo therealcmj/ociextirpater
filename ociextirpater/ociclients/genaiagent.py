@@ -9,14 +9,25 @@ class genaiagent( OCIClient ):
 
     def __init__(self,config):
         super().__init__(config)
-        # gen AI agents are only in chicago, london, and frankfurt (today)
+        # gen AI agents are only in limited regions
+        # see https://docs.oracle.com/en-us/iaas/api/#/en/generative-ai-agents/20240531/ for the list
         # TODO 1: move this logic up into OCIClient
         # TODO 2: figure out how to detect if the service is available in the region and put THAT in the logic instead!
-        for k in list(self.clients.keys()):
-            if not k in [ "us-chicago-1", "uk-london-1", "eu-frankfurt-1"]:
-                logging.info("Gen AI Agent is not available in region {}. That region will be skipped".format(k))
+        # TODO 3: oy vey. This list is only OC1. That's going to be a problem for people cleaning up other realms
+        for k in sorted(list(self.clients.keys())):
+            if not k in [
+                "ap-osaka-1",
+                "eu-frankfurt-1",
+                "sa-saopaulo-1",
+                "uk-london-1",
+                "us-ashburn-1",
+                "us-chicago-1",
+            ]:
+                logging.info("Gen AI Agent service is NOT available in region {}. That region will be skipped".format(k))
                 self.clients.pop(k)
 
+            else:
+                logging.info("Gen AI Agent service IS available in region {}".format(k))
 
     objects = [
         {
@@ -61,3 +72,7 @@ class genaiagent( OCIClient ):
         return oci.pagination.list_call_get_all_results(
             getattr((self.clients[region]), o["function_list"]),
             **{"compartment_id":this_compartment}).data
+
+    def predelete(self,object,region,found_object):
+        # TODO: in Knowledge Bases check to make sure all of the data ingestion jobs are cleaned up
+        return
