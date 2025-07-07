@@ -129,7 +129,7 @@ class OCIClient:
                 logging.debug( "findAndDeleteAllInCompartment on child compartment {}".format( this_compartment ))
 
             if 0 == self.config.threads:
-                logging.info("Executing cleanup without threading. Consider increasing threads to improve performance.")
+                logging.info("Executing cleanup of regions sequentially (i.e. with a single thread)")
                 for region in self.clients:
                     self.cleanupCompartmentInRegion(region, this_compartment)
             else:
@@ -193,6 +193,7 @@ class OCIClient:
                 elif (hasattr(found_object, "lifecycle_state") and
                       (found_object.lifecycle_state == "DELETED" or
                        found_object.lifecycle_state == "DELETE_SCHEDULED" or
+                       found_object.lifecycle_state == "PENDING_DELETION" or
                        found_object.lifecycle_state == "DELETING" or
                        found_object.lifecycle_state == "TERMINATED" or
                        found_object.lifecycle_state == "TERMINATING"
