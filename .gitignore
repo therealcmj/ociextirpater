@@ -1,3 +1,9 @@
 .idea
 .DS_Store
 __pycache__/
+test.tfvars
+.terraform*
+.venv
+terraform.tfstate*
+tf.plan
+backend.tf
