@@ -7,9 +7,7 @@ resource "oci_core_vcn" "this" {
     display_name = "${var.label}-vcn"
     dns_label = "${var.label}"
 
-    defined_tags = {
-      "${var.extirpater_tag}" = "True"
-    }
+    freeform_tags = var.extirpater_tag
 }
 
 resource "oci_core_subnet" "this" {
@@ -25,9 +23,7 @@ resource "oci_core_subnet" "this" {
   prohibit_internet_ingress = true
   security_list_ids = [ oci_core_security_list.this[0].id ]
 
-  defined_tags = {
-    "${var.extirpater_tag}" = "True"
-    }
+  freeform_tags = var.extirpater_tag
 }
 
 resource "oci_core_nat_gateway" "this" {
@@ -37,9 +33,7 @@ resource "oci_core_nat_gateway" "this" {
   vcn_id = oci_core_vcn.this[0].id
   display_name = "${var.label}-nat-gateway"
 
-  defined_tags = {
-  "${var.extirpater_tag}" = "True"
-  }
+  freeform_tags = var.extirpater_tag
 }
 
 resource "oci_core_service_gateway" "this" {
@@ -54,9 +48,7 @@ resource "oci_core_service_gateway" "this" {
     service_id = data.oci_core_services.this.services[0]["id"]
   }
 
-  defined_tags = {
-    "${var.extirpater_tag}" = "True"
-    }
+  freeform_tags = var.extirpater_tag
 }
 
 resource "oci_core_route_table" "this" {
@@ -78,9 +70,7 @@ resource "oci_core_route_table" "this" {
     network_entity_id = oci_core_service_gateway.this[0].id
   }
 
-  defined_tags = {
-    "${var.extirpater_tag}" = "True"
-    }
+  freeform_tags = var.extirpater_tag
 }
 
 resource "oci_core_security_list" "this" {
@@ -114,7 +104,5 @@ resource "oci_core_security_list" "this" {
     }
   }
 
-  defined_tags = {
-    "${var.extirpater_tag}" = "True"
-    }
+  freeform_tags = var.extirpater_tag
 }

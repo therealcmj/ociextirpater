@@ -5,7 +5,3 @@ output "image" {
 output "instance" {
     value = module.compute.instance
 }
-
-output "extirpater_tag" {
-  value = module.governance.extirpater_tag
-}

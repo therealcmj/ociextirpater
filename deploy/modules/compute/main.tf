@@ -32,13 +32,11 @@ resource "oci_core_instance" "this" {
     ssh_authorized_keys = var.ssh_public_key == null ? "" : var.ssh_public_key
     user_data = base64encode(format("#!/bin/bash\n%s\n%s\n%s",
     "TOBEDELETED=${var.extirpate_compartment}",
-    "EXT_TAG=${var.extirpater_tag}",
+    "EXT_TAG=${local.key}=${var.extirpater_tag[local.key]}",
     file("./scripts/bootstrap.sh")))
   }
 
-  defined_tags = {
-    "${var.extirpater_tag}" = "True"
-    }
+  freeform_tags = var.extirpater_tag
 }
 
 resource "random_integer" "ad" {

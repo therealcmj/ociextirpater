@@ -14,7 +14,5 @@ resource "oci_identity_policy" "this" {
         "Allow dynamic-group ${oci_identity_dynamic_group.this.name} to manage all-resources in compartment id ${var.extirpate_compartment}"
     ]
 
-    defined_tags = {
-        "${var.extirpater_tag}" = "True"
-    }
+    freeform_tags = var.extirpater_tag
 }

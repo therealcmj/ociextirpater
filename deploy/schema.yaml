@@ -12,17 +12,12 @@ variableGroups:
       - label
       - ssh_public_key
       - use_existing_network
-      - use_existing_tag
   - title: Network
     variables:
       - network_compartment
       - existing_vcn
       - existing_subnet
     visible: use_existing_network
-  - title: Tagging
-    variables:
-      - existing_tag
-    visible: use_existing_tag
   - title: Hidden
     variables:
       - tenancy_ocid
@@ -84,17 +79,6 @@ variables:
     dependsOn:
       vcnId: ${existing_vcn}
       compartmentId: ${network_compartment}
-
-  use_existing_tag:
-    title: Use Existing Tag
-    type: boolean
-    description: Use existing tag namespace and tag
-    default: false
-
-  existing_tag:
-    title: Existing Tag
-    type: String
-    description: Existing tag in format <strong>tagNamespace.tag</strong>
 
   # Hidden
   tenancy_ocid:

@@ -45,12 +45,8 @@ variable "existing_subnet" {
   default = null
 }
 
-variable "use_existing_tag" {
-  type = bool
-  default = false
-}
-
-variable "existing_tag" {
-  type = string
-  default = null
+# Tag to tell Extirpater to skip deletion of resource
+variable "extirpater_tag" {
+  type = map(string)
+  default = {extirpater_skip = "true"}
 }

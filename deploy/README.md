@@ -28,8 +28,6 @@
 | use_existing_network | Boolean |  |  | Flag to deploy solution to existing network |
 | existing_vcn | String |  |  | OCID of OCI Virtual Cloud Network to deploy Extirpater resources in (**Required if use_existing_network is true**) |
 | existing_subnet | String |  |  | OCID of Subnet in VCN to deploy Extirpater resources in (**Required if use_existing_network is true**) |
-| use_existing_tag | Boolean | | | Flag to use existing tag namespace and tag in place of deploying new tag |
-| existing_tag | String | | | Exisiting tag namespace and tag to use in format TagNamespace.Tag (**Required if use_existing_tag is true**) |
 
 ## Instance Info
 
@@ -42,7 +40,6 @@ Exitirpater will run once a day at 00:00 to delete all resources, except compart
 - One AMD EPYC E5 Flex instance with 1 OCPU and 8 Gb Memory
 - One Dynamic Group on the Default Identity Domain
 - One OCI Policy to give Dynamic Groups permissions on deletion compartment
-- A tag namespace and tag to exempt required resources from deletion
 - The Extirpater instance requires a Virtual Cloud Network (VCN) and subnet with either:
 
   - A NAT Gateway and Service Gateway for accessing updates, repository access, and control plane connectivity and associated route rules
