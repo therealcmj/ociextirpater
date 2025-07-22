@@ -1,0 +1,100 @@
+title: OCI Extirpater
+description: Remove resources automatically by putting them in an OCI Compartment designeted as your "Recycling Bin"
+informationalText: Deploy OCI Extirpater as a daily job running on Oracle Autonoumous Linux 9
+schemaVersion: 1.1.0
+version: "20190304"
+locale: "en"
+
+variableGroups:
+  - title: Main
+    variables:
+      - cleanup_compartment
+      - label
+      - ssh_public_key
+      - use_existing_network
+  - title: Network
+    variables:
+      - network_compartment
+      - existing_vcn
+      - existing_subnet
+    visible: use_existing_network
+  - title: Hidden
+    variables:
+      - tenancy_ocid
+      - user_ocid
+      - private_key_path
+      - fingerprint
+      - private_key_password
+      - region
+    visible: false
+
+variables:
+  cleanup_compartment:
+    title: Cleanup Compartment OCID
+    type: oci:identity:compartment:id
+    description: "Compartment to deploy Extirpater resources and destroy all other resources"
+    required: true
+
+  label:
+    title: Label
+    type: string
+    default: "extirpater"
+    description: "Label to apply to created resources"
+    required: true
+
+  ssh_public_key:
+    title: SSH Public Key(s)
+    type: oci:core:ssh:publickey
+    description: "SSH Public Key to be added to authorized_hosts"
+    default: [""]
+    required: false
+    pattern: "((^(ssh-rsa AAAAB3NzaC1yc2|ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNT|ecdsa-sha2-nistp384 AAAAE2VjZHNhLXNoYTItbmlzdHAzODQAAAAIbmlzdHAzOD|ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1Mj|ssh-ed25519 AAAAC3NzaC1lZDI1NTE5|ssh-dss AAAAB3NzaC1kc3)[0-9A-Za-z+\/]+[=]{0,3})( [^,]*)?)(,((ssh-rsa AAAAB3NzaC1yc2|ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNT|ecdsa-sha2-nistp384 AAAAE2VjZHNhLXNoYTItbmlzdHAzODQAAAAIbmlzdHAzOD|ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1Mj|ssh-ed25519 AAAAC3NzaC1lZDI1NTE5|ssh-dss AAAAB3NzaC1kc3)[0-9A-Za-z+\/]+[=]{0,3})( [^,]*)?)*$"
+    additionalProps:
+      allowMultiple: true
+
+  use_existing_network:
+    title: Use Existing Network
+    type: boolean
+    description: Use pre-existing VCN and Subnet
+    required: true
+    default: false
+
+  network_compartment:
+    title: Existing VCN Compartment
+    type: oci:identity:compartment:id
+
+  existing_vcn:
+    title: Existing VCN
+    type: oci:core:vcn:id
+    description: Existing VCN to deploy instance on
+    required: true
+    dependsOn:
+      compartmentId: ${network_compartment}
+
+  existing_subnet:
+    title: Existing Subnet
+    type: oci:core:subnet:id
+    description: Existing subnet to deploy instance on
+    required: true
+    dependsOn:
+      vcnId: ${existing_vcn}
+      compartmentId: ${network_compartment}
+
+  # Hidden
+  tenancy_ocid:
+    title: tenancy_ocid
+
+  user_ocid:
+    title: user_ocid
+
+  private_key_path:
+    title: private key path
+
+  fingerprint:
+    title: fingerprint
+
+  private_key_password:
+    title: private_key_password
+
+  region:
+    title: region
