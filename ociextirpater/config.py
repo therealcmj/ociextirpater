@@ -101,6 +101,7 @@ class config:
                                 "cache",
                                 "computepool",
                                 "computemanagement",
+                                "containerinstance",
                                 "oke",
                                 "artifacts",
                                 "blockstorage",
