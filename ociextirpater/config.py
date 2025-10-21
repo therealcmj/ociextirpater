@@ -70,6 +70,7 @@ class config:
                                 # "ailanguage",
                                 # "aispeech",
                                 # "aivision",
+                                "aidp",
                                 "digitalassistant",
                                 "genaiagent",
                                 "api",
