@@ -1,4 +1,9 @@
 
+# $TOBEDELETED required to be set
+if [ -v TOBEDELETED ]; then echo "#### Extirpate Compartment $TOBEDELETED ####"
+else echo "#### ERROR: No compartment set ####" && exit 1
+fi
+
 # Variables
 EXT_DIR=/usr/local/ociextirpater
 VENV=$EXT_DIR/.venv
