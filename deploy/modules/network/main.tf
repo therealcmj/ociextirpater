@@ -1,7 +1,7 @@
 resource "oci_core_vcn" "this" {
     count = var.use_existing_network ? 0 : 1
 
-    compartment_id = var.extirpate_compartment
+    compartment_id = var.network_compartment
 
     cidr_block = "172.16.0.0/26"
     display_name = "${var.label}-vcn"
@@ -13,7 +13,7 @@ resource "oci_core_vcn" "this" {
 resource "oci_core_subnet" "this" {
   count = var.use_existing_network ? 0 : 1
 
-  compartment_id = var.extirpate_compartment
+  compartment_id = var.network_compartment
   cidr_block = "172.16.0.0/28"
   vcn_id = oci_core_vcn.this[0].id
   display_name = "${var.label}-subnet"
@@ -29,7 +29,7 @@ resource "oci_core_subnet" "this" {
 resource "oci_core_nat_gateway" "this" {
   count = var.use_existing_network ? 0 : 1
 
-  compartment_id = var.extirpate_compartment
+  compartment_id = var.network_compartment
   vcn_id = oci_core_vcn.this[0].id
   display_name = "${var.label}-nat-gateway"
 
@@ -39,7 +39,7 @@ resource "oci_core_nat_gateway" "this" {
 resource "oci_core_service_gateway" "this" {
   count = var.use_existing_network ? 0 : 1
 
-  compartment_id = var.extirpate_compartment
+  compartment_id = var.network_compartment
   vcn_id = oci_core_vcn.this[0].id
   display_name = "${var.label}-service-gateway"
   #route_table_id = oci_core_route_table.this.id
@@ -54,7 +54,7 @@ resource "oci_core_service_gateway" "this" {
 resource "oci_core_route_table" "this" {
   count = var.use_existing_network ? 0 : 1
 
-  compartment_id = var.extirpate_compartment
+  compartment_id = var.network_compartment
   vcn_id = oci_core_vcn.this[0].id
   display_name = "${var.label}-route-table"
 
@@ -76,7 +76,7 @@ resource "oci_core_route_table" "this" {
 resource "oci_core_security_list" "this" {
   count = var.use_existing_network ? 0 : 1
 
-  compartment_id = var.extirpate_compartment
+  compartment_id = var.network_compartment
   vcn_id = oci_core_vcn.this[0].id
   display_name = "${var.label}-security-list"
 

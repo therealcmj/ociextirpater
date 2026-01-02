@@ -19,10 +19,20 @@ variable "cleanup_compartment" {
 
 # Optional
 
+variable "deployment_compartment" {
+  type = string
+  default = null
+}
+
 variable "label" {
   # Must be less than 15 characters
   default = "extirpater"
   type = string
+
+  validation {
+    condition     = length(var.label) < 15
+    error_message = "label must be less than 15 characters."
+  }
 }
 
 variable "ssh_public_key" {

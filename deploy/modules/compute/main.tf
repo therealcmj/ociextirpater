@@ -1,5 +1,5 @@
 resource "oci_core_instance" "this" {
-  compartment_id = var.extirpate_compartment
+  compartment_id = var.compute_compartment
   display_name = "${var.label}-instance"
   preserve_boot_volume = false
 

@@ -60,3 +60,11 @@ terraform {
   }
 }
 ```
+
+## Troubleshooting
+
+If the Extirpater instance is not working, SSH into the instance using a tool like _Cloud Shell_ and check the following logs to help diagnose the issue:
+
+- /var/log/cloud-init.log
+- /var/log/cloud-init-output.log
+- /var/log/ociextirpater/*.log
