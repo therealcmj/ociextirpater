@@ -294,35 +294,35 @@ class config:
                 raise Exception
 
         # then get a list of the child compartments of the compartments
-        # I could do this recursively but I like to challenge myself sometimes
-        logging.info("Getting child compartments")
+
+        # this is a major optimization of the previous code
+
+        # step 1: get all of the compartments in the tenancy
+        logging.debug("Getting compartments in tenancy {}".format(self.ociconfig["tenancy"]))
+        all_compartments = oci.pagination.list_call_get_all_results(self.identity_client.list_compartments,
+                                                            self.ociconfig["tenancy"],
+                                                            **{
+                                                                "lifecycle_state": "ACTIVE",
+                                                                "compartment_id_in_subtree": True
+                                                                }
+                                                            ).data
+        logging.debug( "Found {} total compartments in tenancy".format( len(all_compartments) ) )
+        
+        # step 2:
+        # right now self.compartments is just the compartment specified on the command line. So a list of size == 1
         compartments_to_traverse = self.compartments
         while compartments_to_traverse:
             c = compartments_to_traverse.pop()
             logging.debug("Getting child compartments of {}".format(c))
-            found = oci.pagination.list_call_get_all_results(self.identity_client.list_compartments,
-                                                             c,
-                                                             **{
-                                                                 "lifecycle_state": "ACTIVE"}
-                                                             ).data
-            logging.debug( "Found {} child compartments".format( len(found) ) )
-            for x in found:
-                logging.debug("Found compartment {} with lifecycle_state {}".format(x.id,x.lifecycle_state))
-
-                # this feels redundant - does the search above ever return non-ACTIVE compartments? Hopefully no
-                if x.lifecycle_state == "ACTIVE":
-                    if x.id in compartments_to_traverse:
-                        logging.debug("Compartment {} already in traversal list".format(x.id))
-                    else:
-                        compartments_to_traverse.add(x.id)
-
-                    if x.id in self.all_compartments:
-                        logging.debug("Compartment {} already in 'all compartments' list".format(x.id))
-                    else:
-                        self.all_compartments.append(x.id)
-                else:
-                    logging.debug("skipping")
-            logging.info("Found {} compartments so far".format( len(self.all_compartments)))
+            
+            # go through the list of all of the compartments (retrieved above)
+            for x in all_compartments:
+                # if x is in the compartment "c" then add it to the list
+                if x.compartment_id == c:
+                    logging.info("Compartment {} / {} is a child of {}".format(c,x.compartment_id,x.name))
+                    self.all_compartments.append(x.id)
+                    compartments_to_traverse.add(x.id)
+        # and that's it
 
         logging.info("Found a total of {} compartments to extirpate".format(len(self.all_compartments)))
 
