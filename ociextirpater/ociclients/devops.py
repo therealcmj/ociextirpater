@@ -95,13 +95,34 @@ class devops(OCIClient):
             "kwargs_delete"      :  _kwargs_delete
         },
 
+        {
+            "name_singular"      : "Repository",
+            "name_plural"        : "Repositories",
+
+            "function_list"      : "list_repositories",
+            "c_function_delete"  : "delete_repository_and_wait_for_state",
+
+            "kwargs_delete"      :  _kwargs_delete
+        },
+
+        {
+            "name_singular"      : "External connection",
+            "name_plural"        : "External connections",
+
+            "function_list"      : "list_connections",
+            "c_function_delete"  : "delete_connection_and_wait_for_state",
+
+            "kwargs_delete"      :  _kwargs_delete
+        },
+
 
         {
             "name_singular"      : "Project",
             "name_plural"        : "Projects",
-            "formatter"          : lambda project: "Devops Project with OCID {} / name '{}' is in state {}".format(project.id, project.name, project.lifecycle_state),
 
             "function_list"      : "list_projects",
+            # you'll note all of the above use c_function_delete and wait for the object to be deleted
+            # i don't do that for the project because it's slightly faster to move on to the next object (devops project or other) without waiting
             "function_delete"    : "delete_project",
         },
     ]
