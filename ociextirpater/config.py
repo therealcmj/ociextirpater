@@ -117,6 +117,7 @@ class config:
                                 "waf",
                                 "ag",
                                 "identity",
+                                "identitydomain",
                                 "consoledashboards",
                                 "compartments",
     ]
