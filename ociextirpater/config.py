@@ -82,6 +82,7 @@ class config:
                                 "dbtools",
                                 "dbrecovery",
                                 "dbmigration",
+                                "dbmanagement",
                                 "database",
                                 "nosql",
                                 "mysql",
