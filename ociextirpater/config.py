@@ -316,11 +316,12 @@ class config:
                                                                 }
                                                             ).data
         logging.debug( "Found {} total compartments in tenancy".format( len(all_compartments) ) )
-        
-        # step 2:
         # right now self.compartments is just the compartment specified on the command line. So a list of size == 1
+
+        # step 2:
         compartments_to_traverse = self.compartments
         while compartments_to_traverse:
+            # while compartments_to_traverse has any compartments listed...
             c = compartments_to_traverse.pop()
             logging.debug("Getting child compartments of {}".format(c))
             
@@ -356,14 +357,65 @@ class config:
 
 
         # regions
-        requested_regions = None
+        logging.info("Getting subscribed regions...")
+        regions = self.identity_client.list_region_subscriptions(self.ociconfig["tenancy"]).data
+        for region in regions:
+            # find the home region of the tenancy - it could be different from what's in the self.ociconfig
+            if region.is_home_region:
+                # WARNING:
+                # there is the (rare but valid) possibility that the user is in a domain that isn't
+                # replicated to the tenancy's home region.
+                # This code doesn't check for that.
+                self.home_region = region.region_name
+
         if cmd.regions:
+            # if the user specifies a list of regions then trust them to have given valid ones
             logging.debug("Regions specified on command line")
-            # TODO: make sure that the user doesn't request a region that they aren't subscribed to
-            # requested_regions = cmd.regions.split(",")
             self.regions = cmd.regions.split(",")
         else:
-            logging.debug("Regions not specified on command line.")
+            # if not then check to see if the user is able to talk to each of the subscribed regions
+            logging.info("Regions not specified on command line. To improve preformance (and skip these next checks) you can add -rg and a list of regions.")
+
+            import socket
+            from urllib.parse import urlsplit
+            for region in regions:
+                logging.debug("Checking whether user has access to region {}".format(region.region_name))
+                # make a new config object with that region
+                c2 = self.ociconfig
+                c2["region"]=region.region_name
+                # and then initialize the identity client for that region
+                ic2 = oci.identity.IdentityClient( self.ociconfig,
+                                                   signer=self.signer,
+                                                   circuit_breaker_strategy=cbs
+                                                 )
+                # once initialized the IdentityClient has the hostname of the identity service
+                # extract that:
+                o = urlsplit(ic2.base_client._endpoint)
+                # and then get the hostname out
+                hn = o.hostname
+                
+                try:
+                    # there are a number of situations where a region is not reachable
+                    # by looking up the IP address we avoid the slow HTTP connection failure on a DNS name not working
+                    ip = socket.gethostbyname(hn)
+
+                    # get_tenancy is probably the fastest call we can make to check a user's identity + API key against a region
+                    ic2.get_tenancy(c2["tenancy"])
+                    # if I find that that doesn't work for some customer for some region then list_compartrments is probably only slightly slower...
+                    # ic2.list_compartments(c2["tenancy"])
+                    self.regions.append( region.region_name )
+                except socket.gaierror:
+                    logging.info("Unable to lookup hostname {}".format(hn))
+                    logging.info("region {} will not be extirpated".format(region.region_name))
+                except Exception as e:
+                    logging.info("Identity not replicated to that region")
+
+
+            logging.info( "Home region: {}".format( self.home_region ) )
+            logging.info( "{} Regions to be extirpated: {}".format( len(self.regions), self.regions ) )
+
+
+
 
         # cmd.objects should really be catagories. But that ship has sailed
         if cmd.objects:
@@ -390,18 +442,6 @@ class config:
                 catsToDelete = cmd.objects.split(",")
 
             self.categories_to_delete = catsToDelete
-
-        logging.info("Getting subscribed regions...")
-        regions = self.identity_client.list_region_subscriptions(self.ociconfig["tenancy"]).data
-        for region in regions:
-            if region.is_home_region:
-                self.home_region = region.region_name
-
-            if not cmd.regions:
-                self.regions.append( region.region_name )
-
-        logging.info( "Home region: {}".format( self.home_region ) )
-        logging.info( "{} Regions to be extirpated: {}".format( len(self.regions), self.regions ) )
 
         if cmd.threads >= 0:
             # if they give us a limit on number of threads respect it
