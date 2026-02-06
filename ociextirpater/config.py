@@ -284,8 +284,15 @@ class config:
         # "set()" filters out dupes - so we only look up the compartment once
         self.compartments = set(cmd.compartment)
 
+        # beginning work to add my own circuit breaker strategy
+        from ociextirpater.MyCBS import MyCBS
+        cbs = MyCBS()
         # let's get the compartment info and show it
-        self.identity_client = oci.identity.IdentityClient(self.ociconfig, signer=self.signer)
+        self.identity_client = oci.identity.IdentityClient(self.ociconfig,
+                                                           signer=self.signer,
+                                                           circuit_breaker_strategy=cbs
+                                                           )
+        
         for compartment in self.compartments:
             try:
                 compartment_name = self.identity_client.get_compartment(compartment).data.name
