@@ -23,6 +23,15 @@ class ocilogging( OCIClient ):
             "function_list"      : "list_log_groups",
             "function_delete"    : "delete_log_group",
         },
+
+        {
+            "name_singular"      : "Saved Search",
+            "name_plural"        : "Saved Searches",
+            "function_list"      : "list_log_saved_searches",
+            "function_delete"    : "delete_log_group",
+        },
+
+
     ]
 
     def predelete(self,object,region,found_object):
@@ -33,7 +42,7 @@ class ocilogging( OCIClient ):
             logs = self.clients[region].list_logs(lgid)
             logging.debug("Found {} logs in group".format(len(logs.data)))
             for l in logs.data:
-                logging.debug("Deleting log id {}".format(l.id))
+                logging.debug("Deleting log {} - id {}".format(l.display_name,l.id))
                 self.compositeClients[region].delete_log_and_wait_for_state(lgid,l.id,["SUCCEEDED","FAILED"])
 
             return

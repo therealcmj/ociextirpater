@@ -1,11 +1,19 @@
 import logging
 
 import oci
+import time
 from ociextirpater.OCIClient import OCIClient
 
 class certificates( OCIClient ):
     service_name = "Certificates"
     clientClass = oci.certificates_management.CertificatesManagementClient
+
+    def __init__(self,config):
+        logging.warning("Certificates and Certificate Authorities cannot be deleted immediately. To allow for compartment deletion secrets will be moved to the specified junkyard compartment and a deletion will be scheduled for 8 days from now...")
+        super().__init__(config)
+
+        # save junkyard from the config
+        self.junkyard = config.junkyard
 
     def list_objects(self, o, region, this_compartment, **kwargs):
         if o["name_plural"] == "Certificates":
@@ -13,7 +21,7 @@ class certificates( OCIClient ):
                 getattr((self.clients[region]), "list_certificates"),
                 **{
                     "compartment_id": this_compartment,
-                    "lifecycle_state": "ACTIVE"
+                    # "lifecycle_state": "ACTIVE"
                 }).data
         elif o["name_plural"] == "Certificate Authorities":
             return oci.pagination.list_call_get_all_results(
@@ -24,6 +32,46 @@ class certificates( OCIClient ):
                 }).data
         else:
             raise NotImplementedError
+
+    def predelete(self,object,region,found_object):
+        if self.junkyard:
+            logging.debug("Junkyard is configured")
+
+        if found_object.compartment_id == self.junkyard:
+            logging.debug("{} is already in junkyard compartment and will not be moved".format(found_object.id))
+            return
+
+        logging.debug("Moving {}} to junkyard".format(object["name_singular"]))
+
+        f_get = None
+        f_move = None
+        move_deets = None
+
+        if object["name_plural"] == "Certificates":
+            f_get = getattr((self.clients[region]), "get_certificate")
+            f_move = getattr((self.clients[region]), "change_certificate_compartment")
+            move_deets = oci.certificates_management.models.ChangeCertificateCompartmentDetails(**{"compartment_id": self.junkyard})
+
+
+        elif object["name_plural"] == "Certificate Authorities":
+            f_get = getattr((self.clients[region]), "get_certificate_authority")
+            f_move = getattr((self.clients[region]), "change_certificate_authority_compartment")
+            move_deets = oci.certificates_management.models.ChangeCertificateAuthorityCompartmentDetails(**{"compartment_id": self.junkyard})
+    
+        f_move(found_object.id, move_deets)
+
+        # wait to see if it's been moved - 15 seconds seems fair
+        wait = 15
+        while wait > 0:
+            r = f_get(found_object.id).data
+            if r.compartment_id != self.junkyard or r.lifecycle_state != "ACTIVE":
+                logging.debug("{} not moved yet. Waiting a second.".format(object["name_singular"]))
+                time.sleep(1)
+                wait -= 1
+            else:
+                logging.info("{} successfully moved to junkyard".format(object["name_singular"]))
+                wait = 0
+
 
     def delete_object(self, object, region, found_object):
         from datetime import datetime, timedelta, timezone

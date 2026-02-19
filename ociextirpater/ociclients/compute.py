@@ -49,8 +49,16 @@ class compute( OCIClient ):
             "function_delete"    : "delete_compute_cluster",
         },
 
+        {
+            "name_singular"      : "Dedicated VM Host",
+            "name_plural"        : "Dedicated VM Hosts",
+
+            "function_list"      : "list_dedicated_vm_hosts",
+            "function_delete"    : "delete_dedicated_vm_host",
+        },
+
+
         # Other services to consider
         # list_compute_global_image_capability_schemas
-        # list_dedicated_vm_hosts
         # list_vnic_attachments
     ]
