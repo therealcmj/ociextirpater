@@ -11,7 +11,12 @@ variableGroups:
       - cleanup_compartment
       - label
       - ssh_public_key
+      - use_deployment_compartment
       - use_existing_network
+  - title: Resources Compartment
+    variables:
+      - deployment_compartment
+    visible: use_deployment_compartment
   - title: Network
     variables:
       - network_compartment
@@ -26,6 +31,7 @@ variableGroups:
       - fingerprint
       - private_key_password
       - region
+      - extirpater_tag
     visible: false
 
 variables:
@@ -45,10 +51,10 @@ variables:
   ssh_public_key:
     title: SSH Public Key(s)
     type: oci:core:ssh:publickey
-    description: "SSH Public Key to be added to authorized_hosts"
+    description: "One or more SSH public keys separated by newlines"
     default: [""]
-    required: false
     pattern: "((^(ssh-rsa AAAAB3NzaC1yc2|ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNT|ecdsa-sha2-nistp384 AAAAE2VjZHNhLXNoYTItbmlzdHAzODQAAAAIbmlzdHAzOD|ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1Mj|ssh-ed25519 AAAAC3NzaC1lZDI1NTE5|ssh-dss AAAAB3NzaC1kc3)[0-9A-Za-z+\/]+[=]{0,3})( [^,]*)?)(,((ssh-rsa AAAAB3NzaC1yc2|ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNT|ecdsa-sha2-nistp384 AAAAE2VjZHNhLXNoYTItbmlzdHAzODQAAAAIbmlzdHAzOD|ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1Mj|ssh-ed25519 AAAAC3NzaC1lZDI1NTE5|ssh-dss AAAAB3NzaC1kc3)[0-9A-Za-z+\/]+[=]{0,3})( [^,]*)?)*$"
+    required: false
     additionalProps:
       allowMultiple: true
 
@@ -62,12 +68,14 @@ variables:
   network_compartment:
     title: Existing VCN Compartment
     type: oci:identity:compartment:id
+    description: "Compartment containing network resources (defaults to cleanup compartment when blank)"
+    required: false
 
   existing_vcn:
     title: Existing VCN
     type: oci:core:vcn:id
     description: Existing VCN to deploy instance on
-    required: true
+    required: false
     dependsOn:
       compartmentId: ${network_compartment}
 
@@ -75,23 +83,43 @@ variables:
     title: Existing Subnet
     type: oci:core:subnet:id
     description: Existing subnet to deploy instance on
-    required: true
+    required: false
     dependsOn:
       vcnId: ${existing_vcn}
       compartmentId: ${network_compartment}
+
+  deployment_compartment:
+    title: Extirpater Resources Compartment
+    type: oci:identity:compartment:id
+    description: "Compartment to deploy Extirpater resources"
+    required: false
+    default: ""
+
+  use_deployment_compartment:
+    title: Use Deployment Compartment
+    description: Use separate compartment for Extirpater resources
+    default: false
+    type: boolean
+    required: true
 
   # Hidden
   tenancy_ocid:
     title: tenancy_ocid
 
+  extirpater_tag:
+    title: extirpater tag
+
   user_ocid:
     title: user_ocid
+    description: "User OCID injected automatically in Resource Manager; required for CLI runs"
 
   private_key_path:
     title: private key path
+    description: "PEM key path used for CLI deployments"
 
   fingerprint:
     title: fingerprint
+    description: "Key fingerprint used for CLI deployments"
 
   private_key_password:
     title: private_key_password

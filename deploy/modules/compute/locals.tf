@@ -1,3 +1,3 @@
 locals {
-key = keys(var.extirpater_tag)[0]
+  key = keys(var.extirpater_tag)[0]
 }

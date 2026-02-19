@@ -50,16 +50,21 @@ Exitirpater will run once a day at 00:00 to delete all resources, except compart
 
 ## Using OCI's Native Terraform Backend
 
-If deployment is being done with tools other than the Oracle Resource Manager, a few configurations can be added to [track state remotely in an OCI Object Storage Bucket](https://blogs.oracle.com/cloud-infrastructure/post/terraform-oci-state-locking-backend). This backend is state-locking so it can be utilized by multiple developers remotely. Simply add the following backend configs:
+If deployment is being done with tools other than the Oracle Resource Manager, a few configurations can be added to [track state remotely in an OCI Object Storage Bucket](https://blogs.oracle.com/cloud-infrastructure/post/terraform-oci-state-locking-backend). This backend is state-locking so it can be utilized by multiple developers remotely. A sample configuration is provided in [`backend.tf`](./backend.tf); simply uncomment it and update the placeholders:
 
 ```HCL
 terraform {
   backend "oci" {
-    bucket               = "terraform_bucket" # Name of Bucket in OCI
-    namespace            = "namespace" # https://docs.oracle.com/en-us/iaas/Content/Object/Tasks/understandingnamespaces.htm
+    bucket         = "<state bucket name>"
+    namespace      = "<object storage namespace>"
+    region         = "<oci-region>"
+    compartment_id = "<bucket compartment ocid>"
+    key            = "<key_location>"
   }
 }
 ```
+
+Leave the block commented (default) when deploying with Oracle Resource Manager, since ORM manages state automatically.
 
 ## Troubleshooting
 
