@@ -3,5 +3,5 @@ output "image" {
 }
 
 output "instance" {
-    value = module.compute.instance
+  value = module.compute.instance
 }
