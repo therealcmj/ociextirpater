@@ -29,8 +29,8 @@ class network( OCIClient ):
                                     {
                                         "function_list"      : "list_ipv6s",
                                         "function_delete"    : "delete_ipv6",
-                                        "name_singular"      : "XXX",
-                                        "name_plural"        : "XXXXs",
+                                        "name_singular"      : "Private IPv6 IP",
+                                        "name_plural"        : "Private IPv6 IPs",
                                     },
                                     {
                                         "function_list"      : "list_xxx",
@@ -82,8 +82,12 @@ class network( OCIClient ):
             "name_plural"        : "internet gateways",
         },
 
-
-
+        {
+            "function_list"      : "list_virtual_circuits",
+            "function_delete"    : "delete_virtual_circuit",
+            "name_singular"      : "Virtual Circuit",
+            "name_plural"        : "Virtual Circuits",
+        },
 
         {
             # must not be mapped to a VirtualCircuit
@@ -117,6 +121,8 @@ class network( OCIClient ):
             # but we already did those so we're good
             "function_list"      : "list_cpes",
             "function_delete"    : "delete_cpe",
+            "formatter"          : lambda instance: "CPE with OCID {} / name '{}'".format( instance.id, instance.display_name),
+
             "name_singular"      : "Networking CPE",
             "name_plural"        : "Networking CPEs",
         },
