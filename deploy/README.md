@@ -1,5 +1,7 @@
 # Deploy OCIExtirpater
 
+[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https://github.com/therealcmj/ociextirpater/releases/download/v1.6.7/deploy1.6.7.zip)
+
 ![OCI Extirpater Architecture (Basic)](./images/extirpater.png)
 
 ## Using Oracle Resource Manager
