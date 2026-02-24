@@ -119,6 +119,7 @@ class config:
                                 "ag",
                                 "identity",
                                 "identitydomain",
+                                "kms",
                                 "consoledashboards",
                                 "compartments",
     ]

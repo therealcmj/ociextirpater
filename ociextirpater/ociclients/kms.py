@@ -8,6 +8,7 @@ from ociextirpater.OCIClient import OCIClient
 class kms( OCIClient ):
     service_name = "Key Management"
     clientClass = oci.key_management.KmsVaultClient
+    compositeClientClass = oci.key_management.KmsVaultClientCompositeOperations
     junkyard = None
 
     objects = [
