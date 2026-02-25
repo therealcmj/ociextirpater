@@ -16,6 +16,7 @@ class certificates( OCIClient ):
         self.junkyard = config.junkyard
 
     def list_objects(self, o, region, this_compartment, **kwargs):
+        # can these be collapsed?
         if o["name_plural"] == "Certificates":
             return oci.pagination.list_call_get_all_results(
                 getattr((self.clients[region]), "list_certificates"),
@@ -30,6 +31,13 @@ class certificates( OCIClient ):
                     "compartment_id": this_compartment,
                     "lifecycle_state": "ACTIVE"
                 }).data
+        elif o["name_plural"] == "Certificate Authorities Bundles":
+            return oci.pagination.list_call_get_all_results(
+                getattr((self.clients[region]), "list_ca_bundles"),
+                **{
+                    "compartment_id": this_compartment,
+                    # "lifecycle_state": "ACTIVE"
+                }).data
         else:
             raise NotImplementedError
 
@@ -41,7 +49,7 @@ class certificates( OCIClient ):
             logging.debug("{} is already in junkyard compartment and will not be moved".format(found_object.id))
             return
 
-        logging.debug("Moving {}} to junkyard".format(object["name_singular"]))
+        logging.debug("Determining whether to move {} to junkyard".format(object["name_singular"]))
 
         f_get = None
         f_move = None
@@ -58,6 +66,11 @@ class certificates( OCIClient ):
             f_move = getattr((self.clients[region]), "change_certificate_authority_compartment")
             move_deets = oci.certificates_management.models.ChangeCertificateAuthorityCompartmentDetails(**{"compartment_id": self.junkyard})
     
+        else:
+            logging.debug("{} does not require delay to delete. Will be deleted immediately and not moved to junkyard".format(object["name_plural"]))
+            return
+
+        logging.debug("Moving {} to junkyard".format(object["name_singular"]))
         f_move(found_object.id, move_deets)
 
         # wait to see if it's been moved - 15 seconds seems fair
@@ -124,6 +137,14 @@ class certificates( OCIClient ):
 
             "formatter"          : lambda ca: "Certificate Authority OCID {} / name '{}' is in state {}".format( ca.id, ca.name, ca.lifecycle_state ),
             "function_list"      : "list_certificate_authorities",
+        },
+
+        {
+            "name_singular"      : "Certificate Authority Bundle",
+            "name_plural"        : "Certificate Authorities Bundles",
+
+            "function_list"      : "list_ca_bundles",
+            "function_delete"    : "delete_ca_bundle"
         },
 
         # {
