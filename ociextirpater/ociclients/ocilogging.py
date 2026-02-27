@@ -40,7 +40,7 @@ class ocilogging( OCIClient ):
             lgid = found_object.id
             logging.debug( "Getting logs in logging group {}".format(lgid))
             logs = self.clients[region].list_logs(lgid)
-            logging.debug("Found {} logs in group".format(len(logs.data)))
+            logging.debug("Found {} logs in group {}".format(len(logs.data),found_object.display_name))
             for l in logs.data:
                 logging.debug("Deleting log {} - id {}".format(l.display_name,l.id))
                 self.compositeClients[region].delete_log_and_wait_for_state(lgid,l.id,["SUCCEEDED","FAILED"])
