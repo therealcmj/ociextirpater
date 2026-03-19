@@ -13,6 +13,9 @@ class OCIClient:
     isRegional = True
     searches_are_recursive = False
 
+    from ociextirpater.MyCBS import MyCBS
+    cbs = MyCBS()
+
     def shouldSkipTagged(self,found_object):
         logging.debug("Checking tag")
 
@@ -55,20 +58,32 @@ class OCIClient:
 
     def _init_regional_client(self,ociconfig,region):
         logging.debug("Initializing {} client for region {}".format(self.clientClass.__name__, region))
-        rconfig = ociconfig
+        rconfig = dict(ociconfig)
         logging.debug("Old region in this OCI config dict: {}".format(rconfig["region"]))
         rconfig["region"] = region
         logging.debug("New region in this OCI config dict: {}".format(rconfig["region"]))
-        self.clients[region] = self.clientClass(rconfig, signer=self.config.signer)
+
+        logging.debug("Initializing client class: {}".format(self.clientClass.__name__))
+        self.clients[region] = self.clientClass(rconfig,
+                                                circuit_breaker_strategy=self.cbs,
+                                                signer=self.config.signer
+                                                )
 
         # if there's a Composite Client class specified then initialize that too
         if self.compositeClientClass:
             logging.debug("Now initializing {} composite client for region {}".format(self.compositeClientClass.__name__, region))
-            self.compositeClients[region] = self.compositeClientClass( self.clients[region] )
+            self.compositeClients[region] = self.compositeClientClass(
+                                                                        self.clients[region],
+                                                                        circuit_breaker_strategy=self.cbs,
+                                                                        )
+
+        logging.debug("Done initializing regional client for region {}".format(region))
 
     def __init__(self,config):
         logging.debug("OCIClient")
         self.config = config
+        self.clients = {}
+        self.compositeClients = {}
 
         logging.info("Initializing clients...")
 

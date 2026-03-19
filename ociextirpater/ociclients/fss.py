@@ -95,10 +95,11 @@ class fss( OCIClient ):
     ]
 
     def __init__(self,config):
+        self.regionADs = {}
         for region in config.regions:
             logging.info("Getting ADs for region {}".format(region))
             import oci.identity.identity_client
-            rconfig = config.ociconfig
+            rconfig = dict(config.ociconfig)
             rconfig["region"] = region
             idc = oci.identity.identity_client.IdentityClient( rconfig, signer=config.signer )
 

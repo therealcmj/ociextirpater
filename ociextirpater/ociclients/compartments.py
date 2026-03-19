@@ -7,7 +7,7 @@ numDeletedCompartments = 0
 maxCompartmentsToDelete = 2
 
 
-def checkIt(c, compartment):
+def checkIt(compartment):
     # leaky abstractions are leaky
     # if c.numDeletedCompartments >= c.maxCompartmentsToDelete:
     if numDeletedCompartments >= maxCompartmentsToDelete:
@@ -22,14 +22,13 @@ def checkIt(c, compartment):
     else:
         logging.debug("No freeform tag 'ExtirpateAttempted'")
 
-    # another drip on the leaky abstractions
-    x = c.clients[list(c.clients.keys())[0]].list_compartments(compartment.id, lifecycle_state="ACTIVE")
-    if len( x.data ) > 0:
-        logging.info("Compartment has ACTIVE child compartments. Skipping.")
-        return False
-    else:
-        logging.debug("Compartment does NOT have active child compartments.")
-
+    # because we don't have access to config or the class instance here I had to resort to a global variable.
+    # I do not like it, but I don't have a better answer
+    for c in compartment_data:
+        if c.compartment_id == compartment.id and c.lifecycle_state == "ACTIVE":
+            logging.info("Compartment has ACTIVE child compartments. Skipping.")
+            return False
+    
     logging.debug("All pre-checks complete. Compartment should be deleted.")
     return True
 
@@ -55,7 +54,7 @@ class compartments( OCIClient ):
             "name_plural"        : "Compartments",
 
             # I HATE HATE HATE that I have to pass "compartments" in. I feel so dirty. But I don't have a better way yet
-            "check2delete"       : lambda compartment: checkIt(compartments, compartment),
+            "check2delete"       : lambda compartment: checkIt(compartment),
 
             "function_list"      : "list_compartments",
             "kwargs_list"        : {
@@ -67,6 +66,11 @@ class compartments( OCIClient ):
 
     ]
 
+    def __init__(self, config):
+        super().__init__(config)
+
+        global compartment_data 
+        compartment_data = self.config.compartment_data
 
     def predelete(self, object, region, found_object):
         # this is wasteful - I could do this one time up above and save importing time and calculating today for every
@@ -108,4 +112,18 @@ class compartments( OCIClient ):
             logging.info(
                 "Maximum number of compartments to delete has been reached. Skipping this and all subsequent compartments during this run.")
             return None
-        return super().findAllInCompartment(region, o, this_compartment, **kwargs)
+        
+        # no need to make this api call - self.config has all the data we need
+        c=super().findAllInCompartment(region, o, this_compartment, **kwargs)
+
+        # make an array to hold the return
+        r = []
+        
+        # go through the saved compartments...
+        for c in self.config.compartment_data:
+            if c.compartment_id == this_compartment:
+                r.append(c)
+
+        logging.debug("Found {} compartments in compartment {}".format(len(r), this_compartment))
+        return r
+

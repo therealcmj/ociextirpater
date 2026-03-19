@@ -4,8 +4,7 @@ import io
 import importlib
 import logging
 
-__requires__ = 'oci==2.78.0'
-__requires__ = 'oci==2.144.0'
+__requires__ = 'oci>=2.144.0'
 
 
 ### NASTY

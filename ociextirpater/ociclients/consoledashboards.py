@@ -21,10 +21,12 @@ class consoledashboards( OCIClient ):
     ]
 
     def __init__(self,config):
+        self.rdcs = {}
+        self.rdccs = {}
         for region in config.regions:
             logging.info("Initializing Dashboard Client(s) {}".format(region))
             import oci.dashboard_service.dashboard_client_composite_operations
-            rconfig = config.ociconfig
+            rconfig = dict(config.ociconfig)
             rconfig["region"] = region
             self.rdcs[region]  = oci.dashboard_service.dashboard_client.DashboardClient( rconfig, signer=config.signer )
             self.rdccs[region] = oci.dashboard_service.dashboard_client_composite_operations.DashboardClientCompositeOperations( self.rdcs[region] )

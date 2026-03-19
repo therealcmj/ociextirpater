@@ -3,8 +3,15 @@ import argparse
 import os
 
 class config:
+    # compartments holds the list of compartments specified on the command line. It is initialized in the constructor by parsing the command line arguments
+    # all_compartments holds the list of all compartments that will be extirpated. It is initialized in the constructor by taking the compartments specified on the command line and finding all of their child compartments
+    # compartment_data holds the data about all of the compartments in the tenancy. It is initialized in the constructor by looking up all of the compartments in the tenancy and saving the results.
+    # at some point I will likely refactor and combine some or all of these
     compartments = []
     all_compartments = []
+    compartment_data = []
+
+    # junk
     junkyard = None
     signer = None
     ociconfig = None
@@ -126,6 +133,18 @@ class config:
 
 
     def __init__(self):
+        self.compartments = set()
+        self.all_compartments = []
+        self.compartment_data = []
+        self.junkyard = None
+        self.signer = None
+        self.ociconfig = None
+        self.threads = 1
+        self.skiptagged = None
+        self.home_region = None
+        self.regions = []
+        self.identity_client = None
+        self.categories_to_delete = list(type(self).categories_to_delete)
         args = self.get_args() if not os.getenv(f'{self.var_prefix}_RESOURCE_PRINCIPAL') else self.make_namespace()
         args = self.get_env_vars(args)
 
@@ -300,7 +319,7 @@ class config:
                 logging.info("Extirpating resources in compartment '{}' (OCID {})".format(compartment_name, compartment))
                 self.all_compartments.append(compartment)
             except:
-                logging.error("Failed to get root compartment {}".format(compartment))
+                logging.error("Failed to get specified compartment {}".format(compartment))
                 raise Exception
 
         # then get a list of the child compartments of the compartments
@@ -309,25 +328,28 @@ class config:
 
         # step 1: get all of the compartments in the tenancy
         logging.debug("Getting compartments in tenancy {}".format(self.ociconfig["tenancy"]))
-        all_compartments = oci.pagination.list_call_get_all_results(self.identity_client.list_compartments,
+        self.compartment_data = oci.pagination.list_call_get_all_results(
+                                                            self.identity_client.list_compartments,
                                                             self.ociconfig["tenancy"],
                                                             **{
                                                                 "lifecycle_state": "ACTIVE",
                                                                 "compartment_id_in_subtree": True
                                                                 }
                                                             ).data
-        logging.debug( "Found {} total compartments in tenancy".format( len(all_compartments) ) )
-        # right now self.compartments is just the compartment specified on the command line. So a list of size == 1
+        logging.debug( "Found {} total compartments in tenancy".format( len(self.compartment_data) ) )
+        # at this point self.compartments is just the compartment or compartments specified on the command line.
+        # Usually that will be a list of size == 1
+        # But if the user specified multiple compartments on the command line then it will be size == the number of compartments specified
 
         # step 2:
-        compartments_to_traverse = self.compartments
+        compartments_to_traverse = set(self.compartments)
         while compartments_to_traverse:
             # while compartments_to_traverse has any compartments listed...
             c = compartments_to_traverse.pop()
             logging.debug("Getting child compartments of {}".format(c))
             
             # go through the list of all of the compartments (retrieved above)
-            for x in all_compartments:
+            for x in self.compartment_data:
                 # if x is in the compartment "c" then add it to the list
                 if x.compartment_id == c:
                     logging.info("Compartment {} / {} is a child of {}".format(c,x.compartment_id,x.name))
@@ -382,10 +404,10 @@ class config:
             for region in regions:
                 logging.debug("Checking whether user has access to region {}".format(region.region_name))
                 # make a new config object with that region
-                c2 = self.ociconfig
+                c2 = dict(self.ociconfig)
                 c2["region"]=region.region_name
                 # and then initialize the identity client for that region
-                ic2 = oci.identity.IdentityClient( self.ociconfig,
+                ic2 = oci.identity.IdentityClient( c2,
                                                    signer=self.signer,
                                                    circuit_breaker_strategy=cbs
                                                  )
