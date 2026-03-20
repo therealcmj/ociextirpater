@@ -97,6 +97,8 @@ class config:
                                 "postgresql",
                                 "dataflow",
                                 "datascience",
+                                "opensearchcluster",
+                                "opensearchbackup",
                                 "datalabeling",
                                 "dns",
                                 "functions",
