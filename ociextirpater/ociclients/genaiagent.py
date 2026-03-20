@@ -41,7 +41,7 @@ class genaiagent( OCIClient ):
             "name_singular"      : "Agent",
             "name_plural"        : "Agents",
             "function_list"      : "list_agents",
-            "function_delete"    : "delete_agent",
+            # "function_delete"    : "delete_agent",
         },
 
         {
@@ -76,3 +76,28 @@ class genaiagent( OCIClient ):
     def predelete(self,object,region,found_object):
         # TODO: in Knowledge Bases check to make sure all of the data ingestion jobs are cleaned up
         return
+
+    def delete_object(self, object, region, found_object):
+        if object["name_plural"] == "Agents":
+            logging.info("Listing tools associated with agent {}".format(found_object.id))
+            f_list_tools = getattr((self.clients[region]), "list_tools")
+            f_delete_tool = getattr((self.clients[region]), "delete_tool")
+            f_delete_agent = getattr((self.clients[region]), "delete_agent")
+            tools = oci.pagination.list_call_get_all_results(
+                f_list_tools,
+                **{"compartment_id": found_object.compartment_id},
+                **{
+                    "agent_id":found_object.id,
+                    "lifecycle_state": "ACTIVE"
+                    }
+                ).data
+
+            for tool in tools:
+                logging.info( "Deleting tool {} associated with agent {}".format(tool.id, found_object.id) )
+                f_delete_tool( tool.id )
+
+            logging.debug("All tools associated with agent {} have been deleted. Now deleting the agent itself".format(found_object.id) )
+            f_delete_agent(found_object.id)
+            return
+    
+        raise NotImplementedError
