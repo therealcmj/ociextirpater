@@ -16,6 +16,7 @@ class kms( OCIClient ):
             "name_singular"      : "KMS Vault",
             "name_plural"        : "KMS Vaults",
             "function_list"      : "list_vaults",
+            "check2delete"       : lambda found_object: found_object.lifecycle_state in ["DELETING", "DELETED"],
         },
     ]
 
@@ -58,7 +59,7 @@ class kms( OCIClient ):
         if object["name_plural"] == "KMS Vaults":
             if self.junkyard:
                 if found_object.compartment_id == self.junkyard:
-                    logging("Vault is already in junkyard.")
+                    logging.debug("Vault is already in junkyard.")
                 else:
                     logging.debug("Moving vault to junkyard")
 
