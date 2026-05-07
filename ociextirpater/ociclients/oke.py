@@ -4,9 +4,20 @@ from ociextirpater.OCIClient import OCIClient
 class oke( OCIClient ):
     service_name = "OKE"
     clientClass = oci.container_engine.ContainerEngineClient
+    compositeClientClass = oci.container_engine.container_engine_client_composite_operations.ContainerEngineClientCompositeOperations
+
+    _kwargs_delete = {
+                        "wait_for_states": [
+                            oci.devops.models.WorkRequest.STATUS_SUCCEEDED,
+                            oci.devops.models.WorkRequest.STATUS_FAILED,
+                            ]
+                    }
 
     objects = [
         {
+            "name_singular"      : "OKE Cluster",
+            "name_plural"        : "OKE Clusters",
+
             "formatter"          : lambda cluster: "OKE Cluster with OCID {} / name '{}' is in state {}".format(cluster.id, cluster.name, cluster.lifecycle_state),
             "function_list"      : "list_clusters",
             "kwargs_list"        : {
@@ -16,9 +27,8 @@ class oke( OCIClient ):
                                             "UPDATING"
                                         ]
                                    },
-            "function_delete"    : "delete_cluster",
-            "name_singular"      : "OKE Cluster",
-            "name_plural"        : "OKE Clusters",
+            "c_function_delete"  : "delete_cluster_and_wait_for_state",
+            "kwargs_delete"      :  _kwargs_delete,
         },
 
 
