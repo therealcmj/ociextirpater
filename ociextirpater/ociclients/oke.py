@@ -8,8 +8,8 @@ class oke( OCIClient ):
 
     _kwargs_delete = {
                         "wait_for_states": [
-                            oci.devops.models.WorkRequest.STATUS_SUCCEEDED,
-                            oci.devops.models.WorkRequest.STATUS_FAILED,
+                            oci.container_engine.models.WorkRequest.STATUS_SUCCEEDED,
+                            oci.container_engine.models.WorkRequest.STATUS_FAILED,
                             ]
                     }
 
