@@ -1,7 +1,7 @@
 resource "oci_resource_scheduler_schedule" "on" {
   action             = "START_RESOURCE"
   compartment_id     = var.compartment_id
-  recurrence_details = "45 0 * * *"
+  recurrence_details = "45 23 * * *"
   recurrence_type    = "CRON"
 
   resources {
