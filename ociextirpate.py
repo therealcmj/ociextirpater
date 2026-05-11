@@ -21,8 +21,8 @@ def patch_http_connection_pool(**constructor_kwargs):
     you want to give to the connection pool)
     """
 
-    from oci._vendor.urllib3 import connectionpool, poolmanager
-
+    # from oci._vendor.urllib3 import connectionpool, poolmanager
+    from urllib3 import connectionpool, poolmanager
     class MyHTTPConnectionPool(connectionpool.HTTPConnectionPool):
         def __init__(self, *args,**kwargs):
             kwargs.update(constructor_kwargs)
@@ -30,7 +30,12 @@ def patch_http_connection_pool(**constructor_kwargs):
     poolmanager.pool_classes_by_scheme['http'] = MyHTTPConnectionPool
     # poolmanager.pool_classes_by_scheme['https'] = MyHTTPConnectionPool
 
-patch_http_connection_pool(maxsize=1000)
+try:
+    patch_http_connection_pool(maxsize=1000)
+except Exception as e:
+    logging.warning("Unable to patch HTTPConnectionPool.")
+    logging.warning(e)
+    logging.info("Continuing with default HTTPConnectionPool settings.")
 
 def extirpate():
 
