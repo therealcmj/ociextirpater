@@ -171,11 +171,44 @@ class config:
         parser.add_argument('-skip_tagged', dest='skip_tagged', help='Skip resources tagged specific ways [namespace.]name[=value]')
         parser.add_argument('-skip_delete_compartment', action='store_true', default=False, dest='skip_delete_compartment', help='Skip Deleting the compartment at the end')
         parser.add_argument("-rg", dest='regions', help="Regions to delete comma separated (defaults to all subscribed regions)")
-        parser.add_argument("-c", dest='compartment', action="append", help="top level compartment id to delete")
+        parser.add_argument("-c", dest='compartment', action="append", required=True, help="top level compartment id to delete")
+        parser.add_argument("--entire-tenancy", dest="entire_tenancy", default=False, action="store_true", help=argparse.SUPPRESS)
         parser.add_argument("-o", dest="objects",help="Object catagories to work on. See docs for info")
         parser.add_argument("-t", dest="threads",default=-1, type=int, help="Number of threads")
         parser.add_argument("--junkyard", dest="junkyard", help="Where to move things that cannot be immediately deleted but must instead be scheduled for deletion. e.g. KMS Vaults")
         cmd = parser.parse_args()
+        
+        logging.error(f'Command line arguments: {cmd}')
+        for compartment in cmd.compartment:
+            if compartment.startswith("ocid.tenancy."):
+                logging.warning("Compartment specified is a tenancy.")
+                logging.warning("I doubt you want to do this and I *STRONGLY* advise against it.")
+                logging.warning("Deleting everything possible in your tenancy may leave you in a very bad and irreparable state.")
+                logging.warning("If critical items are deleted by the script you may need to contact Oracle Support to regain access.")
+
+                if not cmd.entire_tenancy:
+                    import sys
+                    logging.error("If you are absolutely certain you want to attempt to delete everyting in the tenancy then you must add the --entire-tenancy flag.")
+                    logging.error("Aborting.")
+                    sys.exit(1)
+
+                logging.warning("***********************************************************************************************")
+                logging.warning("***********************************************************************************************")
+                logging.warning("*****                                                                                     *****")
+                logging.warning("*****                     YOU PROBABLY DON'T WANT TO DO THIS                              *****")
+                logging.warning("*****                                                                                     *****")
+                logging.warning("*****                 And you should probably hit Control-C now!                          *****")
+                logging.warning("*****                                                                                     *****")
+                logging.warning("***********************************************************************************************")
+                logging.warning("***********************************************************************************************")
+                import time
+                for i in range(10,0,-1):
+                    logging.warning("You have {} seconds to abort".format(i))
+                    time.sleep(1)
+
+                logging.warning("Proceeding with deletion of everything in the tenancy.")
+                logging.warning("This may leave your tenancy in a very bad state.")
+
         return cmd
     
     def get_env_vars(self, cmd):
