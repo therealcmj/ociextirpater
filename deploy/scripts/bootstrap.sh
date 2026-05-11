@@ -31,10 +31,10 @@ attempt_with_retry() {
   local delay="${TIMEOUT:-5}"
   local attempt=1
   while true; do
-    "$@"
-    local rc=$?
-    if [ "$rc" -eq 0 ]; then
+    if "$@"; then
       return 0
+    else
+      local rc=$?
     fi
     if [ "$attempt" -ge "$max" ]; then
       echo "Failed after ${attempt}/${max} attempts (rc=$rc)." >&2
@@ -52,18 +52,25 @@ echo "#### Sleeping $DELAY seconds ####"
 sleep $DELAY
 echo "#### Complete ####"
 
+echo "#### Network diagnostics ####"
+ip route || true
+cat /etc/resolv.conf || true
+getent hosts yum.us-ashburn-1.oci.oraclecloud.com || true
+getent hosts github.com || true
+echo "#### Complete ####"
+
 # Oracle Autonomous Linux 9
 echo "#### Installing prerequisites ####"
 if command -v dnf >/dev/null 2>&1; then
   PKG_MGR=dnf
   echo "  ## Using dnf package manager ##  "
-  attempt_with_retry dnf -y --refresh makecache
-  attempt_with_retry dnf -y --setopt=retries=10 --setopt=metadata_expire=0 --setopt=timeout=30 install git python3 python3-pip policycoreutils-python-utils
+  attempt_with_retry dnf -y --refresh --setopt=skip_if_unavailable=True --disablerepo=ol9_ksplice makecache
+  attempt_with_retry dnf -y --setopt=skip_if_unavailable=True --setopt=retries=10 --setopt=metadata_expire=0 --setopt=timeout=30 --disablerepo=ol9_ksplice install git python3 python3-pip policycoreutils-python-utils
 else
   PKG_MGR=yum
     echo "  ## Using yum package manager ##  "
-  attempt_with_retry yum -y makecache
-  attempt_with_retry yum -y --setopt=retries=10 --setopt=metadata_expire=0 --setopt=timeout=30 install git python3 python3-pip policycoreutils-python-utils
+  attempt_with_retry yum -y --setopt=skip_if_unavailable=True makecache
+  attempt_with_retry yum -y --setopt=skip_if_unavailable=True --setopt=retries=10 --setopt=metadata_expire=0 --setopt=timeout=30 install git python3 python3-pip policycoreutils-python-utils
 fi
 echo "#### Complete ####"
 

@@ -78,3 +78,16 @@ If the Extirpater instance is not working, SSH into the instance using a tool li
 - /var/log/cloud-init.log
 - /var/log/cloud-init-output.log
 - /var/log/ociextirpater/*.log
+
+### Cloud-init package install failures (dnf/yum)
+
+If bootstrap fails early during `dnf makecache`/`yum makecache` with messages like `Couldn't resolve host`, the issue is typically transient DNS or repository reachability during first boot.
+
+To diagnose quickly, review the `Network diagnostics` section emitted by bootstrap in `/var/log/cloud-init-output.log`:
+
+- `ip route`
+- `/etc/resolv.conf`
+- `getent hosts yum.us-ashburn-1.oci.oraclecloud.com`
+- `getent hosts github.com`
+
+The bootstrap script now retries package operations with backoff and skips unavailable optional repositories (for example `ol9_ksplice`) so transient repo metadata failures do not abort deployment.
