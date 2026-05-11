@@ -1,6 +1,6 @@
 # Deploy OCIExtirpater
 
-[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https://github.com/therealcmj/ociextirpater/releases/download/v1.6.7/deploy1.6.7.zip)
+[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?zipUrl=https://github.com/therealcmj/ociextirpater/releases/download/v1.6.8/extirpater1.6.8.zip)
 
 ![OCI Extirpater Architecture (Basic)](./images/extirpater.png)
 
@@ -25,30 +25,32 @@
 | private_key_password | String |  |  | Password for private key associated with user principal |
 | region | String |  | :white_check_mark: | OCI Region to deploy Extirpater in |
 | cleanup_compartment | String | :white_check_mark: | :white_check_mark: | Compartment to Extirpate (delete stuff) |
+| use_deployment_compartment | Boolean |  |  | Deploy Extirpater resources to a different compartment than `cleanup_compartment` |
+| deployment_compartment | String |  |  | Compartment OCID for Extirpater resources (**Required if `use_deployment_compartment` is true**) |
+| network_compartment | String |  |  | Optional compartment OCID for network resources (defaults to Extirpater resources compartment) |
 | label | String |  |  | Label to apply to resources deployed by Extirpater |
 | ssh_public_key | String |  |  | SSH public key to add to Oracle Autonomous Linux instance running Extirpater |
 | use_existing_network | Boolean |  |  | Flag to deploy solution to existing network |
 | existing_vcn | String |  |  | OCID of OCI Virtual Cloud Network to deploy Extirpater resources in (**Required if use_existing_network is true**) |
 | existing_subnet | String |  |  | OCID of Subnet in VCN to deploy Extirpater resources in (**Required if use_existing_network is true**) |
+| extirpater_tag | Map(String) |  |  | Freeform tags used to mark resources Extirpater should skip |
 
 ## Instance Info
 
 An Oracle Autonomous Linux 9 instance is deployed in a (by default) private subnet. An SSH key can be added by entering the public key in the `ssh_public_key` variable to enable shell access.
 
-Exitirpater will run once a day at 00:00 to delete all resources, except compartments, from the chosen `extirpate_compartment`. Logs for these runs will be kept in `/var/log/ociextirpater`.
+Extirpater configures a daily cron job at `00:00` to delete all resources, except compartments, from the chosen `cleanup_compartment`. Logs for these runs are written to `/var/log/ociextirpater`.
+
+Terraform also creates OCI Resource Scheduler schedules to start the instance at `23:45` and stop it at `05:45`, ensuring the instance is running before the `00:00` cleanup cron executes.
 
 ### Requirements
 
-- One AMD EPYC E5 Flex instance with 1 OCPU and 8 Gb Memory
+- One AMD EPYC E5 Flex instance with 1 OCPU and 6 Gb Memory
 - One Dynamic Group on the Default Identity Domain
 - One OCI Policy to give Dynamic Groups permissions on deletion compartment
-- The Extirpater instance requires a Virtual Cloud Network (VCN) and subnet with either:
-
-  - A NAT Gateway and Service Gateway for accessing updates, repository access, and control plane connectivity and associated route rules
-
-  Or
-
-  - An Internet Gateway with routes to the internet
+- The Extirpater instance requires a Virtual Cloud Network (VCN) and subnet.
+- If `use_existing_network = false` (default), Terraform creates a VCN and private subnet with a NAT Gateway and Service Gateway (plus route rules).
+- If `use_existing_network = true`, Terraform uses your existing VCN/subnet values. In this case, Internet Gateway access is possible if you create and configure it in that existing network.
 
 ## Using OCI's Native Terraform Backend
 
@@ -62,6 +64,7 @@ terraform {
     region         = "<oci-region>"
     compartment_id = "<bucket compartment ocid>"
     key            = "<key_location>"
+    auth           = "APIKey"
   }
 }
 ```
@@ -75,3 +78,16 @@ If the Extirpater instance is not working, SSH into the instance using a tool li
 - /var/log/cloud-init.log
 - /var/log/cloud-init-output.log
 - /var/log/ociextirpater/*.log
+
+### Cloud-init package install failures (dnf/yum)
+
+If bootstrap fails early during `dnf makecache`/`yum makecache` with messages like `Couldn't resolve host`, the issue is typically transient DNS or repository reachability during first boot.
+
+To diagnose quickly, review the `Network diagnostics` section emitted by bootstrap in `/var/log/cloud-init-output.log`:
+
+- `ip route`
+- `/etc/resolv.conf`
+- `getent hosts yum.us-ashburn-1.oci.oraclecloud.com`
+- `getent hosts github.com`
+
+The bootstrap script now retries package operations with backoff and skips unavailable optional repositories (for example `ol9_ksplice`) so transient repo metadata failures do not abort deployment.
