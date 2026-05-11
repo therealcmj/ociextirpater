@@ -9,13 +9,19 @@ class objectstore( OCIClient ):
     clientClass = oci.object_storage.ObjectStorageClient
 
     namespace = None
-
+    from oci.retry import NoneRetryStrategy
     objects = [
         {
             "name_singular"    : "Private Endpoint",
             "name_plural"      : "Private Endpoints",
             "function_list"    : "list_private_endpoints",
-            "function_delete"  : "delete_private_endpoint",
+            "kwargs_list"      : {
+                                        "retry_strategy": NoneRetryStrategy
+                                 },
+
+            "formatter"        : lambda pe: "Private Endpoints with name '{}' is in state {}".format( pe.name, pe.lifecycle_state),
+
+            # "function_delete"  : "delete_private_endpoint",
         },
 
         {
@@ -28,6 +34,8 @@ class objectstore( OCIClient ):
             # for that attribute. So this lambda function was here to avoid an exception being thrown.
             # Once I added hasattr() to check for lifecycle state on the object this become unnecessary.
             # "check2delete"     : lambda bucket: True,
+            # "check2delete"       : lambda bucket: hasattr(bucket, "is_read_only") and not bucket.is_read_only,
+
             "children"         : [
                                     {
                                         "function_list"  : "list_replication_policies",
@@ -81,13 +89,35 @@ class objectstore( OCIClient ):
 
 
     def list_objects(self, o, region, this_compartment, **kwargs):
-        if o["name_plural"] == "Object Store buckets" or o["name_plural"] == "Private Endpoints":
+        if o["name_plural"] == "Object Store buckets":
+            # we are going to list all of the buckets and then go back and get more information about them
+            # list buckets doesn't return
+            # 1. the bucket OCID
+            # 2. the read only flag
+
+
+            buckets = oci.pagination.list_call_get_all_results(
+                getattr((self.clients[region]), o["function_list"]),
+                self.namespace,
+                this_compartment,
+                **kwargs).data
+            
+            rbuckets = []
+            get_bucket = getattr((self.clients[region]), "get_bucket")
+            for bucket in buckets:
+                b = get_bucket(bucket.namespace, bucket.name)
+                rbuckets.append(b.data)
+
+            return rbuckets
+
+        if o["name_plural"] == "Private Endpoints":
             logging.debug("Calling oci.pagination.list_call_get_all_results( {}()...".format(o["function_list"]))
 
             return oci.pagination.list_call_get_all_results(getattr((self.clients[region]), o["function_list"]),
                                                             self.namespace,
                                                             this_compartment,
                                                             **kwargs).data
+            
 
         # # TODO: combine these
         # if o["name_plural"] == "Object Store buckets":
@@ -118,21 +148,32 @@ class objectstore( OCIClient ):
                                                                 object.name,
                                                                 **kwargs).data
 
+                # xs contains all of the "child" objects - objects in the bucket or lifecycle/retention/etc policies
+                # I really should have used a better variable name than that.
+                # logging.info("Got {} {}".format(len(xs), child["name_plural"]))
+
                 # then we need to delete them
+                logging.debug("Getting delete function {}".format(child["function_delete"]))
                 df = getattr((self.clients[region]), child["function_delete"])
                 if child["name_plural"] == "Objects":
-                    # then we need to do something special
-                    logging.info("Deleting objects in bucket")
+                    if object.is_read_only:
+                        # logging.info("Bucket is read only. Skipping deletion of {} objects in bucket".format(len(xs.data)))
+                        logging.info("Bucket is read only. Skipping deletion of objects in bucket")
+                    else:
+                        # then we need to do something special
+                        logging.info("Deleting objects in bucket")
 
-                    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
-                        for obj in xs.objects:
-                            logging.debug("Deleting {}".format(obj.name))
+                        with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
+                            for obj in xs.objects:
+                                logging.debug("Deleting {}".format(obj.name))
 
-                            future = executor.submit(df, self.namespace, object.name, obj.name)
+                                future = executor.submit(df, self.namespace, object.name, obj.name)
 
                 else:
                     for x in xs:
+                        logging.debug("checking {}".format(x))
                         if child["name_singular"] == "Object Store multi-part upload":
+                            logging.debug("Deleting multi-part upload {}".format(x.upload_id))
                             df(x.namespace, x.bucket, x.object,x.upload_id)
                         elif child["name_singular"] == "Object Store Retention rule":
                             logging.debug("Retention rule is a special case - trying to delete but it may fail")
@@ -141,17 +182,18 @@ class objectstore( OCIClient ):
                             except:
                                 logging.debug("delete failed, but continuing...")
                         elif child["name_plural"] == "Object Versions":
-                            logging.info("Deleting object versions...ß")
+                            logging.debug("Deleting object versions...")
                             # for x in xs:
                             #     logging.debug("Deleting {} version {}".format( x.name, x.version_id ))
                             #     df( object.namespace, object.name, x.name, **{"version_id": x.version_id} )
-                            with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+                            with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
                                 for x in xs:
                                     logging.debug("Deleting {} version {}".format( x.name, x.version_id ))
                                     future = executor.submit(df, object.namespace, object.name, x.name, **{"version_id": x.version_id} )
 
                             logging.debug("Done deleting object versions")
                         else:
+                            logging.debug("Calling {}".format(df))
                             df( self.namespace, object.name, x.id )
 
             logging.debug("Deleting object lifecycle policy")
@@ -159,7 +201,7 @@ class objectstore( OCIClient ):
             f( self.namespace, object.name )
 
             f = getattr((self.clients[region]), "delete_bucket")
-            logging.debug("calling delete method")
+            logging.debug("calling delete method to delete bucket")
             f(self.namespace, object.name)
         elif oci_object["name_singular"] == "Private Endpoint":
             f = getattr((self.clients[region]), "delete_private_endpoint")
