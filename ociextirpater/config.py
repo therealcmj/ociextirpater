@@ -489,11 +489,6 @@ class config:
             logging.info( "Home region: {}".format( self.home_region ) )
             logging.info( "{} Regions to be extirpated: {}".format( len(self.regions), self.regions ) )
 
-            import sys
-            sys.exit(1)
-
-
-
         # cmd.objects should really be catagories. But that ship has sailed
         if cmd.objects:
             catsToDelete = []
