@@ -120,6 +120,8 @@ class config:
                                 "nwfw",
                                 "npa",
                                 "network",
+                                # ZPR will go here
+                                # "zpr",
                                 "maildelivery",
                                 "healthchecks",
                                 "stream",
@@ -435,9 +437,11 @@ class config:
             # if not then check to see if the user is able to talk to each of the subscribed regions
             logging.info("Regions not specified on command line. To improve preformance (and skip these next checks) you can add -rg and a list of regions.")
 
+            import concurrent.futures
             import socket
             from urllib.parse import urlsplit
-            for region in regions:
+
+            def check_region_access(region):
                 logging.debug("Checking whether user has access to region {}".format(region.region_name))
                 # make a new config object with that region
                 c2 = dict(self.ociconfig)
@@ -462,17 +466,31 @@ class config:
                     ic2.get_tenancy(c2["tenancy"])
                     # if I find that that doesn't work for some customer for some region then list_compartrments is probably only slightly slower...
                     # ic2.list_compartments(c2["tenancy"])
-                    self.regions.append( region.region_name )
+                    return region.region_name
                 except socket.gaierror:
                     logging.info("Unable to lookup hostname {}".format(hn))
                     logging.info("region {} will not be extirpated".format(region.region_name))
                 except Exception as e:
-                    logging.info("Identity not replicated to that region")
+                    logging.info("Identity not replicated to region {} (or there's another connection issue)".format(region.region_name))
+                return None
 
+            if cmd.threads in (0, 1):
+                for region in regions:
+                    region_name = check_region_access(region)
+                    if region_name is not None:
+                        self.regions.append(region_name)
+            else:
+                max_workers = cmd.threads if cmd.threads > 1 else len(regions)
+                with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                    for region_name in executor.map(check_region_access, regions):
+                        if region_name is not None:
+                            self.regions.append(region_name)
 
             logging.info( "Home region: {}".format( self.home_region ) )
             logging.info( "{} Regions to be extirpated: {}".format( len(self.regions), self.regions ) )
 
+            import sys
+            sys.exit(1)
 
 
 
