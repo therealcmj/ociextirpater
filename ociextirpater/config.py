@@ -128,6 +128,7 @@ class config:
                                 "ag",
                                 "identity",
                                 "identitydomain",
+                                "tagging",
                                 "kms",
                                 "consoledashboards",
                                 "compartments",

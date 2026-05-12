@@ -21,15 +21,6 @@ class identity( OCIClient ):
         },
 
         {
-            "name_singular"      : "Tag Namespace",
-            "name_plural"        : "Tag Namespaces",
-
-            "function_list"      : "list_tag_namespaces",
-            "formatter"          : lambda tagnamespace: "tag Namespaces with OCID {} / name '{}' is in state {}".format(tagnamespace.id, tagnamespace.name, tagnamespace.lifecycle_state),
-            "function_delete"    : "cascade_delete_tag_namespace",
-        },
-
-        {
             "name_singular"      : "Tag Default",
             "name_plural"        : "Tag Defaults",
 
@@ -38,13 +29,6 @@ class identity( OCIClient ):
         },
 
     ]
-
-    def predelete(self,object,region,found_object):
-        if object["name_plural"] == "Tag Namespaces":
-            f = getattr((self.clients[region]), "update_tag_namespace")
-            logging.info("Retiring namespace")
-            f( found_object.id, { "isRetired": True } )
-            return
 
     def list_objects(self, o, region, this_compartment, **kwargs):
         if o["name_plural"] == "Tag Defaults":
