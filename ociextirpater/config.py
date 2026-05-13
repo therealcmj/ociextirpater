@@ -73,6 +73,8 @@ class config:
                                 "devops",
                                 "integration",
                                 "vb",
+                                "blockchain",
+                                "opa",
                                 # "aidocument",
                                 # "ailanguage",
                                 # "aispeech",
