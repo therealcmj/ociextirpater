@@ -112,16 +112,14 @@ class identitydomain( OCIClient ):
             f = getattr((self.clients[region]), "deactivate_domain")
             logging.info("Attempting to deactivate domain")
             f(found_object.id)
+            
+            logging.info("Waiting for domain to be deactivated")
+            oci.waiter.wait_until(
+                self.clients[region],
+                self.clients[region].get_domain(found_object.id),
+                evaluate_response=lambda r: r.data.lifecycle_state == oci.identity_domains.models.Domain.LIFECYCLE_STATE_DEACTIVATED,
+                max_wait_seconds=1200
+            )
             return
 
         raise NotImplementedError
-
-    # def delete_object(self, object, region, found_object):
-    #     if object["name_plural"] == "DNS Resolver Endpoints":
-    #         # DNS Resolver Endpoints
-    #         f = getattr((self.clients[region]), "delete_resolver_endpoint")
-    #         logging.info( "Deleting {}".format(object["name_singular"]) )
-    #         f( found_object["endpoint_id"], found_object["name"] )
-    #         return
-    #
-    #     raise NotImplementedError
