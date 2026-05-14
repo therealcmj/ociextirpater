@@ -96,6 +96,7 @@ class config:
                                 "nosql",
                                 "mysql",
                                 "mysqlbackup",
+                                "mysqlconfig",
                                 "postgresql",
                                 "dataflow",
                                 "datascience",
