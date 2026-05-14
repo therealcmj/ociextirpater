@@ -246,17 +246,26 @@ class OCIClient:
                             if "kwargs_delete" in object:
                                 kwargs = object["kwargs_delete"]
 
-                            if "function_delete" in object:
+                            dodelete = True
+                            if hasattr(self, "delete_object"):
+                                try:
+                                    self.delete_object(object, region, found_object)
+                                    logging.debug("Successful deletion")
+                                    dodelete = False
+                                    
+                                except NotImplementedError as e:
+                                    logging.error("Delete object method not implemented for that object type. Continuing with default delete logic.")
+                            
+                            if not dodelete:
+                                logging.debug("Object deleted by custom delete_object method")
+                            elif "function_delete" in object:
                                 f = getattr((self.clients[region]), object["function_delete"])
                                 f(found_object.id, **kwargs)
                                 logging.debug("Successful deletion")
                             elif "c_function_delete" in object:
-
                                 f = getattr((self.compositeClients[region]), object["c_function_delete"])
                                 f(found_object.id, **kwargs)
                                 logging.debug("Successful deletion")
-                            elif hasattr(self, "delete_object"):
-                                self.delete_object(object, region, found_object)
                             else:
                                 logging.debug("No way to delete object (this may be OK)")
 
