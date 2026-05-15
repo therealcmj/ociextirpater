@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from datetime import datetime,timedelta
 import io
 import importlib
 import logging
@@ -86,4 +87,11 @@ def handler(ctx, data: io.BytesIO = None):
 
 
 if __name__ == '__main__':
+    startTime = datetime.now()
     extirpate()
+    endTime = datetime.now()
+    logging.info("Extirpate started at {}".format( startTime ))
+    logging.info("Extirpate ended   at {}".format( endTime ))
+    timedelta_total_seconds = (endTime - startTime).total_seconds()
+    logging.info("Total time spent (total_seconds): {} seconds".format( timedelta_total_seconds ))
+    logging.info("Total time spent: {}".format( endTime - startTime ))
