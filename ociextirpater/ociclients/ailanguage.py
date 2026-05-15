@@ -7,6 +7,14 @@ class ailanguage( OCIClient ):
 
     objects = [
         {
+            "name_singular"      : "Language Endpoint",
+            "name_plural"        : "Language Endpoints",
+
+            "function_list"      : "list_endpoints",
+            "function_delete"    : "delete_endpoint",
+        },
+
+        {
             "name_singular"      : "Language Model",
             "name_plural"        : "Language Models",
 
@@ -21,13 +29,4 @@ class ailanguage( OCIClient ):
             "function_list"      : "list_projects",
             "function_delete"    : "delete_project",
         },
-
-        {
-            "name_singular"      : "Language Endpoint",
-            "name_plural"        : "Language Endpoints",
-
-            "function_list"      : "list_endpoints",
-            "function_delete"    : "delete_endpoint",
-        },
-
     ]
