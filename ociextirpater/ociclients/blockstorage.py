@@ -25,6 +25,17 @@ class blockstorage( OCIClient ):
                 getattr((self.clients[region]), "list_volumes"),
                 **{"compartment_id":this_compartment}).data
 
+        if o["name_plural"] == "Volume Group Replicas":
+            ret = []
+            # TODO: move the logic to get ADs out of here (and elsewhere) and up into OCIClient
+            # that way we can re-use it
+            # we need all availability domains in the region to get all volume group replicas
+            for ad in self.get_availability_domains(region):
+                ret.extend(oci.pagination.list_call_get_all_results(
+                    getattr((self.clients[region]), "list_volume_group_replicas"),
+                    **{"compartment_id":this_compartment, "availability_domain": ad}).data)
+            return ret
+
         if o["name_plural"] == "Block Volume Replicas":
             return oci.pagination.list_call_get_all_results(
                 getattr((self.clients[region]), "list_block_volume_replicas"),
@@ -92,14 +103,11 @@ class blockstorage( OCIClient ):
 
         # this is harder because the function signature is
         # list_volume_group_replicas(availability_domain, compartment_id, **kwargs)
-        # {
-        #     "function_list"      : "list_volume_group_replicas",
-        #     "kwargs_list"        : {
-        #                            },
-        #     "function_delete"    : "volume_group_replica",
-        #     "name_singular"      : "Volume Group Replica",
-        #     "name_plural"        : "Volume Group Replicas",
-        # },
+        {
+            "name_singular"      : "Volume Group Replica",
+            "name_plural"        : "Volume Group Replicas",
+            "function_delete"    : "volume_group_replica",
+        },
 
         {
             "function_list"      : "list_volume_group_backups",
