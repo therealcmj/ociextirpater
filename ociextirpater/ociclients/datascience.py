@@ -1,4 +1,3 @@
-import logging
 import oci
 from ociextirpater.OCIClient import OCIClient
 
@@ -78,5 +77,86 @@ class datascience( OCIClient ):
             "function_delete"    : "delete_project",
         },
 
+        {
+            "name_singular"      : "Fast Launch Job Config",
+            "name_plural"        : "Fast Launch Job Configs",
+            "function_list"      : "list_fast_launch_job_configs",
+            "function_delete"    : "delete_fast_launch_job_config", # to check
+        },
+
+        {
+            "name_singular"     : "ML Application",
+            "name_plural"       : "ML Applications",
+            "function_list"     : "list_ml_applications",
+            "function_delete"   : "delete_ml_application"
+        },
+
+        {
+            "name_singular"     : "ML Application Implementation",
+            "name_plural"       : "ML Application Implementations",
+            "function_list"     : "list_ml_application_implementations",
+            "function_delete"   : "delete_ml_application_implementation"
+        },
+
+        {
+            "name_singular"     : "ML Application Instance",
+            "name_plural"       : "ML Application Instances",
+            "function_list"     : "list_ml_application_instances",
+            "function_delete"   : "delete_ml_application_instance"
+        },
+
+        {
+            "name_singular"     : "Model Group",
+            "name_plural"       : "Model Groups",
+            "function_list"     : "list_model_groups",
+            "function_delete"   : "delete_model_group",
+        },
+
+        {
+            "name_singular"     : "Model Group Version History",
+            "name_plural"       : "Model Group Version Histories",
+            "function_list"     : "list_model_group_version_histories",
+            "function_delete"   : "delete_model_group_version_history",
+        },
+
+        {
+            "name_singular"     : "Model Version Set",
+            "name_plural"       : "Model Version Sets",
+            "function_list"     : "list_model_version_sets",
+            "function_delete"   : "delete_model_version_set",
+        },
+
+        {
+            "name_singular"     : "Notebook Session",
+            "name_plural"       : "Notebook Sessions",
+            "function_list"     : "list_notebook_sessions",
+            "function_delete"   : "delete_notebook_session"
+        },
+
+
+        {
+            "name_singular"     : "Pipeline",
+            "name_plural"       : "Pipelines",
+            "function_list"     : "list_pipelines",
+            "function_delete"   : "delete_pipeline"
+        },
+
+        {
+            "name_singular"     : "Schedule",
+            "name_plural"       : "Schedules",
+            "function_list"     : "list_schedules",
+            "function_delete"   : "delete_schedule"
+        }
+
+        # Things that we don't need to delete explicitly
+
+        # {
+        #    def list_ml_application_implementation_versions(self, ml_application_implementation_id, **kwargs):
+        #    def delete_model_custom_metadatum_artifact(self, model_id, metadatum_key_name, **kwargs):
+        # },
+
+        # {
+        #    def delete_model_defined_metadatum_artifact(self, model_id, metadatum_key_name, **kwargs):
+        # },
 
     ]
