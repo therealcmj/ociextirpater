@@ -82,6 +82,7 @@ class config:
                                 "aidp",
                                 "digitalassistant",
                                 "genaiagent",
+                                "genaiclient",
                                 "api",
                                 "apideployment",
                                 "apigateway",
