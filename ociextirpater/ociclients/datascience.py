@@ -78,13 +78,6 @@ class datascience( OCIClient ):
         },
 
         {
-            "name_singular"      : "Fast Launch Job Config",
-            "name_plural"        : "Fast Launch Job Configs",
-            "function_list"      : "list_fast_launch_job_configs",
-            "function_delete"    : "delete_fast_launch_job_config", # to check
-        },
-
-        {
             "name_singular"     : "ML Application",
             "name_plural"       : "ML Applications",
             "function_list"     : "list_ml_applications",
