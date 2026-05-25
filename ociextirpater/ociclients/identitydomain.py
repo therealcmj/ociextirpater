@@ -109,17 +109,22 @@ class identitydomain( OCIClient ):
 
     def predelete(self,object,region,found_object):
         if object["name_plural"] == "Identity Domains":
+            if found_object.lifecycle_state == oci.identity.models.Domain.LIFECYCLE_STATE_INACTIVE:
+                logging.info("Domain {} is already inactive".format(found_object.id))
+                return
+            
             f = getattr((self.clients[region]), "deactivate_domain")
             logging.info("Attempting to deactivate domain")
             f(found_object.id)
             
-            logging.info("Waiting for domain to be deactivated")
+            logging.info("Waiting for domain {} to be deactivated".format(found_object.id))
             oci.waiter.wait_until(
                 self.clients[region],
                 self.clients[region].get_domain(found_object.id),
-                evaluate_response=lambda r: r.data.lifecycle_state == oci.identity_domains.models.Domain.LIFECYCLE_STATE_DEACTIVATED,
-                max_wait_seconds=1200
+                evaluate_response=lambda r: r.data.lifecycle_state == oci.identity.models.Domain.LIFECYCLE_STATE_INACTIVE,
+                max_wait_seconds=1200,
             )
+            logging.info("Domain {} is now deactivated".format(found_object.id))
             return
 
         raise NotImplementedError
