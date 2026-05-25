@@ -28,7 +28,7 @@ class ocilogging( OCIClient ):
             "name_singular"      : "Saved Search",
             "name_plural"        : "Saved Searches",
             "function_list"      : "list_log_saved_searches",
-            "function_delete"    : "delete_log_group",
+            "function_delete"    : "delete_log_saved_search",
         },
 
 
