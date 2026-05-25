@@ -87,6 +87,8 @@ class config:
                                 "apideployment",
                                 "apigateway",
                                 "bastion",
+                                "dataintegration",
+                                "datacatalog",
                                 "goldengate",
                                 "datasafe",
                                 "dbtools",
