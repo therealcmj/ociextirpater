@@ -75,6 +75,7 @@ class config:
                                 "vb",
                                 "blockchain",
                                 "opa",
+                                "bigdata",
                                 # "aidocument",
                                 # "ailanguage",
                                 # "aispeech",
