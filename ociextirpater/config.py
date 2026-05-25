@@ -61,6 +61,7 @@ class config:
                                 "managementagent",
                                 "monitoring",
                                 "stackmonitoring",
+                                "ocb",
                                 "apm",
                                 "opsinsight",
                                 "events",
