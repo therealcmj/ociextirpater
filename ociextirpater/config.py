@@ -134,6 +134,8 @@ class config:
                                 "healthchecks",
                                 "stream",
                                 "vss",
+                                # WAAS is the older "edge WAF" service. Cleaning up that before the newer WAF service
+                                "waas",
                                 "waf",
                                 "ag",
                                 "identity",
