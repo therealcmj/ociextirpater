@@ -1,7 +1,5 @@
 import logging
-
 import oci
-import time
 from ociextirpater.OCIClient import OCIClient
 
 class certificates( OCIClient ):
@@ -15,120 +13,24 @@ class certificates( OCIClient ):
         # save junkyard from the config
         self.junkyard = config.junkyard
 
-    def list_objects(self, o, region, this_compartment, **kwargs):
-        # can these be collapsed?
-        if o["name_plural"] == "Certificates":
-            return oci.pagination.list_call_get_all_results(
-                getattr((self.clients[region]), "list_certificates"),
-                **{
-                    "compartment_id": this_compartment,
-                    # "lifecycle_state": "ACTIVE"
-                }).data
-        elif o["name_plural"] == "Certificate Authorities":
-            return oci.pagination.list_call_get_all_results(
-                getattr((self.clients[region]), "list_certificate_authorities"),
-                **{
-                    "compartment_id": this_compartment,
-                    "lifecycle_state": "ACTIVE"
-                }).data
-        elif o["name_plural"] == "Certificate Authorities Bundles":
-            return oci.pagination.list_call_get_all_results(
-                getattr((self.clients[region]), "list_ca_bundles"),
-                **{
-                    "compartment_id": this_compartment,
-                    # "lifecycle_state": "ACTIVE"
-                }).data
-        else:
-            raise NotImplementedError
-
-    def predelete(self,object,region,found_object):
-        if self.junkyard:
-            logging.debug("Junkyard is configured")
-
-        if found_object.compartment_id == self.junkyard:
-            logging.debug("{} is already in junkyard compartment and will not be moved".format(found_object.id))
-            return
-
-        logging.debug("Determining whether to move {} to junkyard".format(object["name_singular"]))
-
-        f_get = None
-        f_move = None
-        move_deets = None
-
-        if object["name_plural"] == "Certificates":
-            f_get = getattr((self.clients[region]), "get_certificate")
-            f_move = getattr((self.clients[region]), "change_certificate_compartment")
-            move_deets = oci.certificates_management.models.ChangeCertificateCompartmentDetails(**{"compartment_id": self.junkyard})
-
-
-        elif object["name_plural"] == "Certificate Authorities":
-            f_get = getattr((self.clients[region]), "get_certificate_authority")
-            f_move = getattr((self.clients[region]), "change_certificate_authority_compartment")
-            move_deets = oci.certificates_management.models.ChangeCertificateAuthorityCompartmentDetails(**{"compartment_id": self.junkyard})
-    
-        else:
-            logging.debug("{} does not require delay to delete. Will be deleted immediately and not moved to junkyard".format(object["name_plural"]))
-            return
-
-        logging.debug("Moving {} to junkyard".format(object["name_singular"]))
-        f_move(found_object.id, move_deets)
-
-        # wait to see if it's been moved - 15 seconds seems fair
-        wait = 15
-        while wait > 0:
-            r = f_get(found_object.id).data
-            if r.compartment_id != self.junkyard or r.lifecycle_state != "ACTIVE":
-                logging.debug("{} not moved yet. Waiting a second.".format(object["name_singular"]))
-                time.sleep(1)
-                wait -= 1
-            else:
-                logging.info("{} successfully moved to junkyard".format(object["name_singular"]))
-                wait = 0
-
-
-    def delete_object(self, object, region, found_object):
-        from datetime import datetime, timedelta, timezone
-        at = datetime.now(timezone.utc) + timedelta(days=7, minutes=15)
-        tod = at.strftime('%Y-%m-%dT%H:%M:%S.000Z')
-        logging.debug("Time of scheduled deletion: {}".format(tod))
-
-        if object["name_plural"] == "Certificates":
-            return (self.clients[region]).schedule_certificate_deletion(
-                found_object.id,
-                schedule_certificate_deletion_details=oci.certificates_management.models.ScheduleCertificateDeletionDetails(time_of_deletion= tod )
-            )
-        elif object["name_plural"] == "Certificate Authorities":
-            return (self.clients[region]).schedule_certificate_authority_deletion(
-                found_object.id,
-                schedule_certificate_authority_deletion_details=oci.certificates_management.models.ScheduleCertificateAuthorityDeletionDetails(
-                    time_of_deletion=tod
-                )
-            )
-
-        raise NotImplementedError
-
     objects = [
 
-        # we should probably find associations and terminate them
-        # {
-        #     "function_list"      : "list_associations",
-        #     "kwargs_list"        : {
-        #                            },
-        #     "function_delete"    : "delete_xxx",
-        #     "name_singular"      : "XXX",
-        #     "name_plural"        : "XXXXs",
-        # },
+        # Eventually we should probably associations and report them out
+        {
+            "name_singular"      : "Certificate Association",
+            "name_plural"        : "Certificate Associations",
+            "function_list"      : "list_associations",
+            "check2delete"       : lambda o: False
+        },
 
         {
             "formatter"          : lambda cert: "Certificate OCID {} / name '{}' is in state {}".format( cert.id, cert.name, cert.lifecycle_state ),
-            # "function_list"      : "list_certificates",
-            # "kwargs_list"        : {
-            #                             "lifecycle_state": "ACTIVE"
-            #                        },
-
-            # "function_delete"    : "schedule_certificate_deletion",
             "name_singular"      : "Certificate",
             "name_plural"        : "Certificates",
+            "function_list"      : "list_certificates",
+            "function_get"       : "delete_certificate",
+            "function_move"      : "change_certificate_compartment",
+
         },
 
         {
@@ -137,6 +39,8 @@ class certificates( OCIClient ):
 
             "formatter"          : lambda ca: "Certificate Authority OCID {} / name '{}' is in state {}".format( ca.id, ca.name, ca.lifecycle_state ),
             "function_list"      : "list_certificate_authorities",
+            "function_get"       : "get_certificate_authority",
+            "function_move"      : "change_certificate_authority_compartment",
         },
 
         {
@@ -147,13 +51,107 @@ class certificates( OCIClient ):
             "function_delete"    : "delete_ca_bundle"
         },
 
-        # {
-        #     # "formatter"          : lambda instance: "XXX instance with OCID {} / name '{}' is in state {}".format( instance.id, instance.name, instance.lifecycle_state ),
-        #     "function_list"      : "list_xxx",
-        #     "kwargs_list"        : {
-        #                            },
-        #     "function_delete"    : "delete_xxx",
-        #     "name_singular"      : "XXX",
-        #     "name_plural"        : "XXXXs",
-        # },
     ]
+
+    def move_to_junkyard(self,object,region,found_object):
+        # this will only be called if:
+        # 1) a junkyard is configured
+        # 2) the object can be moved to a junkyard (i.e. it has a function_move defined)
+        # 3) is not already in the junkyard
+
+        # we need the "get" function in order to see that the move has completed successfully
+        # if either of these are not defines we'll crash out with an exception - which should be caught above
+        
+        f_get = getattr((self.clients[region]), object["function_get"])
+        f_move = getattr((self.clients[region]), object["function_move"])
+        move_deets = None
+
+        if object["name_plural"] == "Certificates":
+            move_deets = oci.certificates_management.models.ChangeCertificateCompartmentDetails(**{"compartment_id": self.junkyard})
+
+
+        elif object["name_plural"] == "Certificate Authorities":
+            move_deets = oci.certificates_management.models.ChangeCertificateAuthorityCompartmentDetails(**{"compartment_id": self.junkyard})
+    
+        else:
+            raise Exception("Object {} does not have a configured move to junkyard function".format(object["name_singular"]))
+
+        logging.debug("Moving {} to junkyard".format(object["name_singular"]))
+        f_move(found_object.id, move_deets)
+
+        oci.wait_until(
+            self.clients[region],
+            f_get(found_object.id),
+            evaluate_response=lambda r: r.data.lifecycle_state == "ACTIVE" and r.data.compartment_id == self.junkyard,
+            max_wait_seconds=60
+        )
+        logging.debug("{} successfully moved to junkyard".format(object["name_singular"]))
+
+
+    def delete_object(self, object, region, found_object):
+        # TODO: eventually we'll have OCIClient look for and call move_to_junkyard directly instead of having it be the responsibility of each class
+
+        if "function_move" in object and self.junkyard:
+            logging.debug("Junkyard is configured and object {} supports moving".format(object["name_singular"]))
+        
+            if found_object.compartment_id == self.junkyard:
+                logging.debug("{} is already in junkyard compartment and will not be moved".format(found_object.id))
+
+            else:
+                logging.debug("{} is not in junkyard compartment and will be moved there before deletion".format(found_object.id))
+                try:
+                    self.move_to_junkyard(object, region, found_object)
+                except Exception as e:
+                    logging.error("Failed to move {} {} to junkyard. Will attempt deletion anyway. Error was: {}".format(object["name_singular"], found_object.id, e))
+
+        if object["name_plural"] == "Certificates":
+            return (self.clients[region]).schedule_certificate_deletion(
+                found_object.id,
+                schedule_certificate_deletion_details=oci.certificates_management.models.ScheduleCertificateDeletionDetails(
+                    time_of_deletion=self.calculate_scheduled_deletion_time(object)
+                )
+            )
+        elif object["name_plural"] == "Certificate Authorities":
+            return (self.clients[region]).schedule_certificate_authority_deletion(
+                found_object.id,
+                schedule_certificate_authority_deletion_details=oci.certificates_management.models.ScheduleCertificateAuthorityDeletionDetails(
+                    time_of_deletion=self.calculate_scheduled_deletion_time(object)
+                )
+            )
+
+        logging.debug( "{} can be deleted immediately".format(object["name_singular"]))
+        return super().delete_object(object, region, found_object)
+
+    def calculate_scheduled_deletion_time(self, object):
+        logging.debug("Calculating minimum valid scheduled deletion time for {}".format(object["name_singular"]))
+        from datetime import datetime, timedelta, timezone
+        at = datetime.now(timezone.utc) + timedelta(days=7, minutes=15)
+        tod = at.strftime('%Y-%m-%dT%H:%M:%S.000Z')
+        logging.debug("Time of scheduled deletion: {}".format(tod))
+        return tod
+
+
+    def findAllInCompartment(self, region, o, this_compartment, **kwargs):
+        f = getattr((self.clients[region]), o["function_list"])
+
+        kwargs_list = {}
+        # this isn't a thing for anything in the certificates client class.
+        # But leaving here as a prototype if things change in the future.
+        # if "kwargs_list" in o:
+        #     kwargs_list = o.get("kwargs_list", {})
+        
+        kwargs_list["compartment_id"] = this_compartment
+        
+        if o["name_plural"] == "Certificate Associations":
+            logging.debug("Certificate Associations cannot be deleted directly. We are only reporting them out here for visibility.")
+        else:
+            kwargs_list["lifecycle_state"] = "ACTIVE"
+
+        return oci.pagination.list_call_get_all_results(
+            f,
+            **kwargs_list).data
+    
+            # **{
+            #     "compartment_id": this_compartment,
+            #     "lifecycle_state": "ACTIVE"
+            # }).data
