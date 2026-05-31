@@ -55,5 +55,6 @@ class tagging( OCIClient ):
                 max_wait_seconds=3600,
                 evaluate_response=lambda r: getattr(r.data, 'status') and getattr(r.data, 'status').lower() in ['succeeded']
             )
-
-        raise NotImplementedError
+            return
+        
+        return super().delete_object(object, region, found_object)
