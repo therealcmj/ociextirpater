@@ -133,19 +133,19 @@ class objectstore( OCIClient ):
 
         raise NotImplementedError
 
-    def delete_object(self, oci_object, region, object):
+    def delete_object(self, object, region, found_object):
         f = None
-        if oci_object["name_singular"] == "Object Store bucket":
+        if object["name_singular"] == "Object Store bucket":
             # child objects:
-            for child in oci_object["children"]:
-                logging.debug( "Listing {} in bucket {}".format( child["name_plural"], object.name ))
+            for child in object["children"]:
+                logging.debug( "Listing {} in bucket {}".format( child["name_plural"], found_object.name ))
                 kwargs = {}
                 if hasattr( child, "kwargs_list"):
                     kwargs = child["kwargs_list"]
                 logging.debug("Getting a list of all {} objects in bucket".format(child["name_singular"]))
                 xs = oci.pagination.list_call_get_all_results(  getattr((self.clients[region]), child["function_list"]),
                                                                 self.namespace,
-                                                                object.name,
+                                                                found_object.name,
                                                                 **kwargs).data
 
                 # xs contains all of the "child" objects - objects in the bucket or lifecycle/retention/etc policies
@@ -156,7 +156,7 @@ class objectstore( OCIClient ):
                 logging.debug("Getting delete function {}".format(child["function_delete"]))
                 df = getattr((self.clients[region]), child["function_delete"])
                 if child["name_plural"] == "Objects":
-                    if object.is_read_only:
+                    if found_object.is_read_only:
                         # logging.info("Bucket is read only. Skipping deletion of {} objects in bucket".format(len(xs.data)))
                         logging.info("Bucket is read only. Skipping deletion of objects in bucket")
                     else:
@@ -167,7 +167,7 @@ class objectstore( OCIClient ):
                             for obj in xs.objects:
                                 logging.debug("Deleting {}".format(obj.name))
 
-                                future = executor.submit(df, self.namespace, object.name, obj.name)
+                                future = executor.submit(df, self.namespace, found_object.name, obj.name)
 
                 else:
                     for x in xs:
@@ -178,7 +178,7 @@ class objectstore( OCIClient ):
                         elif child["name_singular"] == "Object Store Retention rule":
                             logging.debug("Retention rule is a special case - trying to delete but it may fail")
                             try:
-                                df(self.namespace, object.name, x.id )
+                                df(self.namespace, found_object.name, x.id )
                             except:
                                 logging.debug("delete failed, but continuing...")
                         elif child["name_plural"] == "Object Versions":
@@ -189,23 +189,24 @@ class objectstore( OCIClient ):
                             with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
                                 for x in xs:
                                     logging.debug("Deleting {} version {}".format( x.name, x.version_id ))
-                                    future = executor.submit(df, object.namespace, object.name, x.name, **{"version_id": x.version_id} )
+                                    future = executor.submit(df, found_object.namespace, found_object.name, x.name, **{"version_id": x.version_id} )
 
                             logging.debug("Done deleting object versions")
                         else:
                             logging.debug("Calling {}".format(df))
-                            df( self.namespace, object.name, x.id )
+                            df( self.namespace, found_object.name, x.id )
 
             logging.debug("Deleting object lifecycle policy")
             f = getattr((self.clients[region]), "delete_object_lifecycle_policy")
-            f( self.namespace, object.name )
+            f( self.namespace, found_object.name )
 
             f = getattr((self.clients[region]), "delete_bucket")
             logging.debug("calling delete method to delete bucket")
-            f(self.namespace, object.name)
-        elif oci_object["name_singular"] == "Private Endpoint":
+            f(self.namespace, found_object.name)
+        elif object["name_singular"] == "Private Endpoint":
             f = getattr((self.clients[region]), "delete_private_endpoint")
             logging.debug("calling delete method")
-            f(self.namespace, object.name)
+            f(self.namespace, found_object.name)
         else:
-            raise NotImplementedError
+            return super().delete_object(object, region, found_object)
+        
