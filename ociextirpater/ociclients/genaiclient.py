@@ -25,7 +25,12 @@ class genaiclient( OCIClient ):
             "name_singular"      : "Endpoint",
             "name_plural"        : "Endpoints",
             "function_list"      : "list_endpoints",
-            "list_kwargs"        : {"lifecycle_state": oci.generative_ai.models.Endpoint.LIFECYCLE_STATE_ACTIVE},
+            "list_kwargs"        : {
+                "lifecycle_state": [
+                    oci.generative_ai.models.Endpoint.LIFECYCLE_STATE_ACTIVE,
+                    oci.generative_ai.models.Endpoint.LIFECYCLE_STATE_FAILED
+                ]
+            },
             # "function_delete"    : "delete_endpoint",
             "c_function_delete"  : "delete_endpoint_and_wait_for_state",
             "function_delete_args" : {
@@ -77,6 +82,14 @@ class genaiclient( OCIClient ):
             "name_plural"        : "Imported Models",
             "function_list"      : "list_imported_models",
             "function_delete"    : "delete_imported_model",
+        },
+
+        {
+            "name_singular"      : "Model",
+            "name_plural"        : "Models",
+            "function_list"      : "list_models",
+            "check2delete"       : lambda model: model.type == oci.generative_ai.models.Model.TYPE_CUSTOM,
+            "function_delete"    : "delete_model",
         },
 
         {
