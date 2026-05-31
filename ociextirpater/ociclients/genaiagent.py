@@ -15,7 +15,7 @@ class genaiagent( OCIClient ):
         # TODO 2: figure out how to detect if the service is available in the region and put THAT in the logic instead!
         # TODO 3: oy vey. This list is only OC1. That's going to be a problem for people cleaning up other realms
         for k in sorted(list(self.clients.keys())):
-            if not k in [
+            if k not in [
                 "ap-osaka-1",
                 "eu-frankfurt-1",
                 "sa-saopaulo-1",
@@ -73,16 +73,12 @@ class genaiagent( OCIClient ):
             getattr((self.clients[region]), o["function_list"]),
             **{"compartment_id":this_compartment}).data
 
-    def predelete(self,object,region,found_object):
-        # TODO: in Knowledge Bases check to make sure all of the data ingestion jobs are cleaned up
-        return
 
     def delete_object(self, object, region, found_object):
         if object["name_plural"] == "Agents":
             logging.info("Listing tools associated with agent {}".format(found_object.id))
             f_list_tools = getattr((self.clients[region]), "list_tools")
             f_delete_tool = getattr((self.clients[region]), "delete_tool")
-            f_delete_agent = getattr((self.clients[region]), "delete_agent")
             tools = oci.pagination.list_call_get_all_results(
                 f_list_tools,
                 **{"compartment_id": found_object.compartment_id},
@@ -96,8 +92,9 @@ class genaiagent( OCIClient ):
                 logging.info( "Deleting tool {} associated with agent {}".format(tool.id, found_object.id) )
                 f_delete_tool( tool.id )
 
-            logging.debug("All tools associated with agent {} have been deleted. Now deleting the agent itself".format(found_object.id) )
-            f_delete_agent(found_object.id)
-            return
-    
-        raise NotImplementedError
+            logging.debug("All tools associated with agent {} have been deleted.".format(found_object.id) )
+        # TODO: in Knowledge Bases check to make sure all of the data ingestion jobs are cleaned up
+
+
+
+        super().delete_object(object, region, found_object)
