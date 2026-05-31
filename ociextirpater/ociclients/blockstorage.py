@@ -2,65 +2,25 @@ import logging
 import oci
 from ociextirpater.OCIClient import OCIClient
 
+from inspect import signature
+
+
 class blockstorage( OCIClient ):
     service_name = "Block Storage"
     clientClass = oci.core.BlockstorageClient
-    # compositeClientClass = oci.core.BlockstorageClientCompositeOperations
-
-    def list_objects(self, o, region, this_compartment, **kwargs):
-        # Boot and Block Volumes have different methods
-        if o["name_plural"] == "Boot Volumes":
-            return oci.pagination.list_call_get_all_results(
-                getattr((self.clients[region]), "list_boot_volumes"),
-                **{"compartment_id":this_compartment}).data
-
-        if o["name_plural"] == "Boot Volume Replicas":
-            return oci.pagination.list_call_get_all_results(
-                getattr((self.clients[region]), "list_boot_volume_replicas"),
-                **{"compartment_id":this_compartment}).data
-
-
-        if o["name_plural"] == "Volumes":
-            return oci.pagination.list_call_get_all_results(
-                getattr((self.clients[region]), "list_volumes"),
-                **{"compartment_id":this_compartment}).data
-
-        if o["name_plural"] == "Volume Group Replicas":
-            ret = []
-            # TODO: move the logic to get ADs out of here (and elsewhere) and up into OCIClient
-            # that way we can re-use it
-            # we need all availability domains in the region to get all volume group replicas
-            for ad in self.get_availability_domains(region):
-                ret.extend(oci.pagination.list_call_get_all_results(
-                    getattr((self.clients[region]), "list_volume_group_replicas"),
-                    **{"compartment_id":this_compartment, "availability_domain": ad}).data)
-            return ret
-
-        if o["name_plural"] == "Block Volume Replicas":
-            return oci.pagination.list_call_get_all_results(
-                getattr((self.clients[region]), "list_block_volume_replicas"),
-                **{"compartment_id":this_compartment}).data
-
-
-        # Volume Backup policies are common to both Boot and Block volumes
-        if o["name_plural"] == "Volume Backup Policies":
-            return oci.pagination.list_call_get_all_results(
-                getattr((self.clients[region]), "list_volume_backup_policies"),
-                **{"compartment_id":this_compartment}).data
-
-        raise NotImplementedError
+    compositeClientClass = oci.core.BlockstorageClientCompositeOperations
 
     objects = [
         {
-            "name_singular"      : "Volume Group",
-            "name_plural"        : "Volume Groups",
+            "name_singular"      : "Block Volume Group",
+            "name_plural"        : "Block Volume Groups",
             "function_list"      : "list_volume_groups",
             "function_delete"    : "delete_volume_group",
         },
 
         {
-            "name_singular"      : "Volume Backup Policy",
-            "name_plural"        : "Volume Backup Policies",
+            "name_singular"      : "Block Volume Backup Policy",
+            "name_plural"        : "Block Volume Backup Policies",
             "function_list"      : "list_volume_backup_policies",
             "formatter"          : lambda policy: "Block Volume Backup Policy with OCID {} / display name '{}'".format(policy.id, policy.display_name),
             "function_delete"    : "delete_volume_backup_policy",
@@ -74,10 +34,10 @@ class blockstorage( OCIClient ):
         # },
 
         {
-            "function_list"      : "list_boot_volume_backups",
-            "function_delete"    : "delete_boot_volume_backup",
             "name_singular"      : "Boot Volume Backup",
             "name_plural"        : "Boot Volume Backups",
+            "function_list"      : "list_boot_volume_backups",
+            "function_delete"    : "delete_boot_volume_backup",
         },
 
         # {
@@ -95,87 +55,130 @@ class blockstorage( OCIClient ):
         },
 
         {
-            "name_singular"      : "Volume Backup",
-            "name_plural"        : "Volume Backups",
+            "name_singular"      : "Block Volume Backup",
+            "name_plural"        : "Block Volume Backups",
             "function_list"      : "list_volume_backups",
             "function_delete"    : "delete_volume_backup",
         },
 
-        # this is harder because the function signature is
-        # list_volume_group_replicas(availability_domain, compartment_id, **kwargs)
         {
-            "name_singular"      : "Volume Group Replica",
-            "name_plural"        : "Volume Group Replicas",
+            "name_singular"      : "Block Volume Group Replica",
+            "name_plural"        : "Block Volume Group Replicas",
+            "function_list"      : "list_volume_group_replicas",
             "function_delete"    : "volume_group_replica",
         },
 
         {
+            "name_singular"      : "Block Volume Group Backup",
+            "name_plural"        : "Block Volume Group Backups",
             "function_list"      : "list_volume_group_backups",
             "function_delete"    : "delete_volume_group_backup",
-            "name_singular"      : "Volume Group Backup",
-            "name_plural"        : "Volume Group Backups",
         },
 
         {
+            "name_singular"      : "Block Volume Group",
+            "name_plural"        : "Block Volume Groups",
             "function_list"      : "list_volume_groups",
             "function_delete"    : "delete_volume_group",
-            "name_singular"      : "Volume Group",
-            "name_plural"        : "Volume Groups",
         },
 
         {
+            "name_singular"      : "Block Volume",
+            "name_plural"        : "Block Volumes",
             "function_list"      : "list_volumes",
             "function_delete"    : "delete_volume",
-            "name_singular"      : "Volume",
-            "name_plural"        : "Volumes",
         },
     ]
 
-    def predelete(self,object,region,found_object):
-        logging.debug("In pre-delete method")
+    def findAllInCompartment(self, region, o, this_compartment, **kwargs):
+        funcname = o["function_list"]
+        f = getattr(self.clients[region], funcname)
 
-        # No pre-delete needed here
-        # # TODO: fix the OCIClient to not abort on NotImplementedException and then remove these
-        # if object["name_plural"] == "Boot Volume Backups":
-        #     #NO OP here
-        #     return
-        #
-        # if object["name_plural"] == "Volume Backup Policies":
-        #     #NO OP here
-        #     return
+        sig = signature(f)
+        params = []
+        for name, param in sig.parameters.items():
+            # logging.debug("Function param: name={} type: {}".format(name,param.kind))
+            params.append(name)
 
+        # TODO (far) in the future: move this up into OCIClient
+        if params[0] == "compartment_id":
+            logging.debug("Method {} takes compartment_id as first parameter".format(funcname))
+            return oci.pagination.list_call_get_all_results(
+                f,
+                this_compartment).data
+        
+        elif params[0] == "availability_domain" and params[1] == "compartment_id":        
+            logging.debug("Method {} takes availability_domain, compartment_id as parameters".format(funcname))
+            ret=[]
+            for ad in self.get_availability_domains(region):
+                logging.debug("Getting {} in region {} AD {}".format(o["name_plural"],region,ad.name))
+                adres = oci.pagination.list_call_get_all_results(
+                    f,
+                    ad.name,
+                    this_compartment,
+                    **{}
+                ).data
+                logging.debug("AD {} returned {} {}".format(ad.name, len(adres), o["name_plural"]))
+                ret.extend(adres)
+            return ret
+
+        elif params[0] == "kwargs":
+            logging.debug("Method {} takes compartment_id in the kwargs".format(funcname))
+            return oci.pagination.list_call_get_all_results(
+                f,
+                **{"compartment_id":this_compartment}).data
+
+        logging.warning("Calling super() method to find all resource in compartment.")
+        return super().findAllInCompartment(self,region, o, this_compartment, **kwargs)
+
+    def delete_object(self, object, region, found_object):
 
         if object["name_plural"] == "Boot Volumes":
+            logging.debug("Checking Boot Volume for replicas")
+
             if not hasattr( found_object, "boot_volume_replicas") or found_object.boot_volume_replicas == None:
-                logging.debug("Boot volume doesn't have any replicas.")
-                return
+                logging.debug("Boot volume does not have any replicas.")
+            else:
+                logging.debug("Block volume has {} replica(s)".format(len(found_object.boot_volume_replicas)))
 
-            f = getattr((self.clients[region]), "update_boot_volume")
-            logging.info("Updating boot volume")
-            f(
-                found_object.id,
-                oci.core.models.UpdateBootVolumeDetails(
-                    boot_volume_replicas=None
+                f = getattr(self.compositeClients[region], "update_boot_volume_and_wait_for_state")
+                logging.debug("Updating boot volume to remove replicas")
+                f(
+                    found_object.id,
+                    oci.core.models.UpdateBootVolumeDetails(
+                        boot_volume_replicas=[]
+                    ),
+                    [
+                        oci.core.models.Volume.LIFECYCLE_STATE_AVAILABLE,
+                        # oci.core.models.Volume.LIFECYCLE_STATE_FAULTY
+                    ]
                 )
-            )
-            return
+                logging.debug("Done.")
 
-        if object["name_plural"] == "Block Volumes":
-            if not hasattr( found_object, "volume_replicas") or found_object.volume_replicas == None:
-                logging.debug("Boot volume doesn't have any replicas.")
-                return
 
-            f = getattr((self.clients[region]), "update_volume")
-            logging.info("Updating volume")
-            f(
-                found_object.id,
-                {
-                    "block_volume_replicas": None
-                }
-            )
-            return
+        elif object["name_plural"] == "Block Volumes":
+            logging.debug("Checking Block Volume for replicas")
 
-        if object["name_plural"] == "Volume Groups":
+            if not hasattr( found_object, "block_volume_replicas") or found_object.block_volume_replicas == None:
+                logging.debug("Block volume does not have any replicas.")
+            else:
+                logging.debug("Block volume has {} replica(s)".format(len(found_object.block_volume_replicas)))
+
+                f = getattr(self.compositeClients[region], "update_volume_and_wait_for_state")
+                logging.debug("Updating volume to remove replicas")
+                f(
+                    found_object.id,
+                    oci.core.models.UpdateVolumeDetails(
+                        block_volume_replicas=[]
+                    ),
+                    [
+                        oci.core.models.Volume.LIFECYCLE_STATE_AVAILABLE,
+                        # oci.core.models.Volume.LIFECYCLE_STATE_FAULTY
+                    ]
+                )
+                logging.debug("Done.")
+
+        elif object["name_plural"] == "Volume Groups":
             f = getattr((self.clients[region]), "update_volume_group")
             logging.info("Updating volume group")
             f(
@@ -188,6 +191,6 @@ class blockstorage( OCIClient ):
                    "preserve_volume_replica": False,
                 }
             )
-            return
 
-        raise NotImplementedError
+        logging.debug("Calling super().delete_object() to delete")
+        return super().delete_object(object, region, found_object)

@@ -13,6 +13,8 @@ class OCIClient:
     isRegional = True
     searches_are_recursive = False
 
+    _regional_ADs = {}
+
     from ociextirpater.MyCBS import MyCBS
     cbs = MyCBS()
 
@@ -100,6 +102,27 @@ class OCIClient:
                 self._init_regional_client( config.ociconfig, region)
 
         logging.debug("{} {} clients initialized".format( len(self.clients), self.clientClass.__name__))
+
+
+    def get_availability_domains(self,region):
+        logging.debug("Getting ADs for region {}".format(region))
+        # if it's already in the cache just return it from there
+        if self._regional_ADs and region in self._regional_ADs.keys():
+            logging.debug("Returning ADs from cache")
+            return self._regional_ADs[region]
+        
+        logging.info("Using identity client to retrieve ADs for region {}".format(region))
+        import oci.identity.identity_client
+        rconfig = dict(self.config.ociconfig)
+        rconfig["region"] = region
+        idc = oci.identity.identity_client.IdentityClient( rconfig, signer=self.config.signer )
+
+        r = idc.list_availability_domains( rconfig["tenancy"] )
+
+        # logging.debug("R.data = {}".format(r.data))
+        self._regional_ADs[region] = r.data
+        return self._regional_ADs[region]
+
 
     def findAllInCompartment(self, region, o, this_compartment, **kwargs):
         # most of the find_ methods in the clients take the compartment as a param
@@ -241,35 +264,31 @@ class OCIClient:
                     if delete:
                         logging.info("Deleting")
                         try:
-                            kwargs = {}
-
-                            if "kwargs_delete" in object:
-                                kwargs = object["kwargs_delete"]
-
-                            dodelete = True
-                            if hasattr(self, "delete_object"):
-                                try:
-                                    self.delete_object(object, region, found_object)
-                                    logging.debug("Successful deletion")
-                                    dodelete = False
-                                    
-                                except NotImplementedError as e:
-                                    logging.error("Delete object method not implemented for that object type. Continuing with default delete logic.")
-                            
-                            if not dodelete:
-                                logging.debug("Object deleted by custom delete_object method")
-                            elif "function_delete" in object:
-                                f = getattr((self.clients[region]), object["function_delete"])
-                                f(found_object.id, **kwargs)
-                                logging.debug("Successful deletion")
-                            elif "c_function_delete" in object:
-                                f = getattr((self.compositeClients[region]), object["c_function_delete"])
-                                f(found_object.id, **kwargs)
-                                logging.debug("Successful deletion")
-                            else:
-                                logging.debug("No way to delete object (this may be OK)")
+                            self.delete_object(object, region, found_object)
 
                         except Exception as e:
                             logging.error("Failed to delete {} because {}".format(object["name_singular"], e))
                             logging.info("Object info: {}".format(found_object))
                             logging.debug(e)
+
+    def delete_object(self, object, region, found_object):
+        if "function_delete" and "c_function_delete" in object:
+            logging.error("BOTH function_delete and c_function_delete are defined for object {}. This is a mistake. Please open an issue on GitHub to get this fixed.".format(object["name_singular"]))
+
+        kwargs = {}
+        if "kwargs_delete" in object:
+            kwargs = object["kwargs_delete"]
+
+        # The 95% case is that function_delete is defined. So we order that first
+        if "function_delete" in object:
+            logging.debug("Trying function '{}' in client class {}".format(object["function_delete"], self.clientClass.__name__))   
+            f = getattr((self.clients[region]), object["function_delete"])
+            f(found_object.id, **kwargs)
+            logging.debug("Successful deletion")
+        elif "c_function_delete" in object:
+            logging.debug("Trying function '{}' in composite client class {}".format(object["c_function_delete"], self.compositeClientClass.__name__))  
+            f = getattr((self.compositeClients[region]), object["c_function_delete"])
+            f(found_object.id, **kwargs)
+            logging.debug("Successful deletion")
+        else:
+            logging.debug("No way to delete object (this may be OK)")
