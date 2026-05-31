@@ -62,5 +62,4 @@ class secrets( OCIClient ):
             f( found_object.id, oci.key_management.models.ScheduleVaultDeletionDetails(**{ "time_of_deletion": nextweek} ) )
             return
 
-        raise NotImplementedError
-
+        return super().delete_object(object, region, found_object)
