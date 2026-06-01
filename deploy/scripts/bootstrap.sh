@@ -88,6 +88,10 @@ echo "#### Setting Executables: $EXT_DIR/deploy/scripts/daily.sh ####"
 chown root:$USER $EXT_DIR/deploy/scripts/daily.sh
 chmod 750 $EXT_DIR/deploy/scripts/daily.sh
 
+echo "#### Setting Executables: $EXT_DIR/deploy/scripts/log-rotation.sh ####"
+chown root:$USER $EXT_DIR/deploy/scripts/log-rotation.sh
+chmod 750 $EXT_DIR/deploy/scripts/log-rotation.sh
+
 echo "#### Complete ####"
 
 # Tested with Python 3.9.21
@@ -118,6 +122,7 @@ CRON_TMP=$(mktemp)
 {
   echo "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$VENV/bin"
   echo "0 0 * * * $EXT_DIR/deploy/scripts/daily.sh $TOBEDELETED $LOG_DIR $EXT_TAG"
+  echo "0 0 * * * $EXT_DIR/deploy/scripts/log-rotation.sh"
 } > "$CRON_TMP"
 crontab -u $USER "$CRON_TMP"
 rm -f "$CRON_TMP"

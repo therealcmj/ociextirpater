@@ -39,7 +39,12 @@
 
 An Oracle Autonomous Linux 9 instance is deployed in a (by default) private subnet. An SSH key can be added by entering the public key in the `ssh_public_key` variable to enable shell access.
 
-Extirpater configures a daily cron job at `00:00` to delete all resources, except compartments, from the chosen `cleanup_compartment`. Logs for these runs are written to `/var/log/ociextirpater`.
+Extirpater configures two daily cron jobs at `00:00`:
+
+- `deploy/scripts/daily.sh` deletes all resources, except compartments, from the chosen `cleanup_compartment`.
+- `deploy/scripts/log-rotation.sh` runs concurrently to compress and prune old logs in `/var/log/ociextirpater`.
+
+Logs for cleanup runs are written to `/var/log/ociextirpater`.
 
 Terraform also creates OCI Resource Scheduler schedules to start the instance at `23:45` and stop it at `05:45`, ensuring the instance is running before the `00:00` cleanup cron executes.
 
