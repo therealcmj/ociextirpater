@@ -272,7 +272,7 @@ class OCIClient:
                             logging.debug(e)
 
     def delete_object(self, object, region, found_object):
-        if "function_delete" and "c_function_delete" in object:
+        if "function_delete" in object and "c_function_delete" in object:
             logging.error("BOTH function_delete and c_function_delete are defined for object {}. This is a mistake. Please open an issue on GitHub to get this fixed.".format(object["name_singular"]))
 
         kwargs = {}
