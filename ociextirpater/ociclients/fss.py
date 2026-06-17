@@ -19,6 +19,10 @@ class fss( OCIClient ):
             "formatter"          : lambda filesystem: "Filesystem with OCID {} / name '{}' is in state {}".format(filesystem.id, filesystem.display_name, filesystem.lifecycle_state),
             "function_list"      : "list_file_systems",
             "function_delete"    : "delete_file_system",
+            "kwargs_delete"      : { 
+                                        "is_lock_override": True,
+                                        "can_detach_child_file_system": True
+                                    }
         },
 
         # Export Sets doesn't have a delete_export_set
@@ -74,23 +78,12 @@ class fss( OCIClient ):
             "function_delete"    : "delete_filesystem_snapshot_policy",
         },
 
-        {
-            "name_singular"      : "Snapshot",
-            "name_plural"        : "Snapshots",
-            "function_list"      : "list_snapshots",
-            "function_delete"    : "delete_snapshot",
-        },
-
+        # snapshots are a child of Filesystem(s) and are deleted in the delete_object function.
         # {
-        #     "name_singular"      : "XXX",
-        #     "name_plural"        : "XXXXs",
-        #     "checkIt"            : lambda image: hasattr(image, "compartment_id") and image.compartment_id != None,
-
-        #     "function_list"      : "list_xxx",
-        #     "kwargs_list"        : {
-        #                            },
-        #     "formatter"          : lambda instance: "XXX instance with OCID {} / name '{}' is in state {}".format( instance.id, instance.name, instance.lifecycle_state ),
-        #     "function_delete"    : "delete_xxx",
+        #     "name_singular"      : "Snapshot",
+        #     "name_plural"        : "Snapshots",
+        #     "function_list"      : "list_snapshots",
+        #     "function_delete"    : "delete_snapshot",
         # },
     ]
 
@@ -116,10 +109,8 @@ class fss( OCIClient ):
     def findAllInCompartment(self, region, o, this_compartment, **kwargs):
         total_result = []
 
-        if o["name_plural"] == "Exports" or o["name_plural"] == "Snapshots":
-            kwargs = {
-                "compartment_id": this_compartment
-            }
+        if "is_child_object" in o and o["is_child_object"]:
+            logging.debug("Object {} is a child object, skipping the AD loop".format(o["name_plural"]))
             x = oci.pagination.list_call_get_all_results(getattr((self.clients[region]), o["function_list"]),
                                                          **kwargs).data
 
@@ -141,3 +132,44 @@ class fss( OCIClient ):
 
         logging.debug("Total of {} {} in compartment {} in region {}".format( len( total_result), o["name_plural"],this_compartment, region ))
         return total_result
+
+
+    def delete_object(self, object, region, found_object):
+        # file systems have some child objects that need to be deleted first.
+
+        if object["name_plural"] == "File Systems":
+            children_objects = [
+                        # Exports /are/ technicall a child of a filesystem (I think)
+                        # but since you can list them without specifying the file system I don't need do to this here
+                        # even so I wrote the code so I'm going to leave it here in case I need to do something similar later
+                        # {
+                        #     "name_singular"      : "Export",
+                        #     "name_plural"        : "Exports",
+                        #     "is_child_object"    : True,
+                        #     "function_list"      : "list_exports",
+                        #     "function_delete"    : "delete_export"
+                        # },
+                        {
+                            "name_singular"      : "Snapshot",
+                            "name_plural"        : "Snapshots",
+                            "is_child_object"    : True,
+                            "function_list"      : "list_snapshots",
+                            "function_delete"    : "delete_snapshot",
+                        }                        
+                    ]
+            
+            for o in children_objects:
+                o2 = dict(o)
+                kwargs = {
+                    "compartment_id": found_object.compartment_id,
+                    "file_system_id": found_object.id
+                }
+
+                childs = self.findAllInCompartment(region, o2, found_object.compartment_id, **kwargs)
+                for child in childs:
+                    logging.info("Deleting {} child {} with id {}".format(object["name_singular"], o["name_singular"], child.id))
+                    getattr((self.clients[region]), o["function_delete"])(child.id)
+            
+            logging.info("All child objects of {} with id {} deleted, poceeding to delete parent".format(object["name_singular"], found_object.id))   
+        
+        return super().delete_object(object, region, found_object)
