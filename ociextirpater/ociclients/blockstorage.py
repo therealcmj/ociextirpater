@@ -11,27 +11,9 @@ class blockstorage( OCIClient ):
     compositeClientClass = oci.core.BlockstorageClientCompositeOperations
 
     objects = [
-        {
-            "name_singular"      : "Block Volume Group",
-            "name_plural"        : "Block Volume Groups",
-            "function_list"      : "list_volume_groups",
-            "function_delete"    : "delete_volume_group",
-        },
-
-        {
-            "name_singular"      : "Block Volume Backup Policy",
-            "name_plural"        : "Block Volume Backup Policies",
-            "function_list"      : "list_volume_backup_policies",
-            "formatter"          : lambda policy: "Block Volume Backup Policy with OCID {} / display name '{}'".format(policy.id, policy.display_name),
-            "function_delete"    : "delete_volume_backup_policy",
-        },
-
-        # {
-        #     "function_list"      : "list_block_volume_replicas",
-        #     "function_delete"    : "delete_block_volume_replicas",
-        #     "name_singular"      : "Block Volume Replica",
-        #     "name_plural"        : "Block Volume Replicas",
-        # },
+        # NOTE: there is some commented code in the objects array below.
+        #       this is intentional - I have ideas for additional uses of this code
+        #      in the future and want to save myself some time later
 
         {
             "name_singular"      : "Boot Volume Backup",
@@ -40,11 +22,11 @@ class blockstorage( OCIClient ):
             "function_delete"    : "delete_boot_volume_backup",
         },
 
+        # deleting these is handled in the boot volume itself
         # {
-        #     "function_list"      : "list_boot_volume_replicas",
-        #     "function_delete"    : "delete_boot_volume_replica",
         #     "name_singular"      : "Boot Volume Replica",
         #     "name_plural"        : "Boot Volume Replicas",
+        #     "function_list"      : "list_boot_volume_replicas",
         # },
 
         {
@@ -54,19 +36,11 @@ class blockstorage( OCIClient ):
             "function_delete"    : "delete_boot_volume",
         },
 
-        {
-            "name_singular"      : "Block Volume Backup",
-            "name_plural"        : "Block Volume Backups",
-            "function_list"      : "list_volume_backups",
-            "function_delete"    : "delete_volume_backup",
-        },
-
-        {
-            "name_singular"      : "Block Volume Group Replica",
-            "name_plural"        : "Block Volume Group Replicas",
-            "function_list"      : "list_volume_group_replicas",
-            "function_delete"    : "volume_group_replica",
-        },
+        # {
+        #     "name_singular"      : "Block Volume Group Replica",
+        #     "name_plural"        : "Block Volume Group Replicas",
+        #     "function_list"      : "list_volume_group_replicas",
+        # },
 
         {
             "name_singular"      : "Block Volume Group Backup",
@@ -79,8 +53,23 @@ class blockstorage( OCIClient ):
             "name_singular"      : "Block Volume Group",
             "name_plural"        : "Block Volume Groups",
             "function_list"      : "list_volume_groups",
+            "function_get"       : "get_volume_group",
             "function_delete"    : "delete_volume_group",
         },
+
+        {
+            "name_singular"      : "Block Volume Backup",
+            "name_plural"        : "Block Volume Backups",
+            "function_list"      : "list_volume_backups",
+            "function_delete"    : "delete_volume_backup",
+        },
+
+        # deleting these is handled in the block volume itself
+        # {
+        #     "name_singular"      : "Block Volume Replica",
+        #     "name_plural"        : "Block Volume Replicas",
+        #     "function_list"      : "list_block_volume_replicas",
+        # },
 
         {
             "name_singular"      : "Block Volume",
@@ -88,6 +77,15 @@ class blockstorage( OCIClient ):
             "function_list"      : "list_volumes",
             "function_delete"    : "delete_volume",
         },
+
+        {
+            "name_singular"      : "Block Volume Backup Policy",
+            "name_plural"        : "Block Volume Backup Policies",
+            "function_list"      : "list_volume_backup_policies",
+            "formatter"          : lambda policy: "Block Volume Backup Policy with OCID {} / display name '{}'".format(policy.id, policy.display_name),
+            "function_delete"    : "delete_volume_backup_policy",
+        },
+
     ]
 
     def findAllInCompartment(self, region, o, this_compartment, **kwargs):
@@ -178,19 +176,30 @@ class blockstorage( OCIClient ):
                 )
                 logging.debug("Done.")
 
-        elif object["name_plural"] == "Volume Groups":
-            f = getattr((self.clients[region]), "update_volume_group")
-            logging.info("Updating volume group")
-            f(
-                found_object.id,
-                {
-                   "volume_group_replicas": [],
-                   "volume_ids": []
-                },
-                **{
-                   "preserve_volume_replica": False,
-                }
-            )
+        elif object["name_plural"] == "Block Volume Groups":
+            # oci.core.models.VolumeGroup
+            # oci.core.models.VolumeGroup.volume_group_replicas
+
+            if not hasattr( found_object, "volume_group_replicas") or found_object.volume_group_replicas == None:
+                logging.debug("Block volume group does not have any replicas.")
+            else:
+                # f = getattr((self.clients[region]), "update_volume_group")
+
+                f = getattr((self.compositeClients[region]), "update_volume_group_and_wait_for_state")
+                logging.info("Updating volume group")
+                f(
+                    found_object.id,
+                    oci.core.models.UpdateVolumeGroupDetails(
+                        volume_group_replicas=[],
+                        # volume_ids=[]
+                    ),
+                    [ 
+                        oci.core.models.VolumeGroup.LIFECYCLE_STATE_AVAILABLE
+                    ],
+                    operation_kwargs = {
+                        "preserve_volume_replica": False,
+                    }
+                )
 
         logging.debug("Calling super().delete_object() to delete")
         return super().delete_object(object, region, found_object)
