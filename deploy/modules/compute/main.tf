@@ -30,9 +30,10 @@ resource "oci_core_instance" "this" {
 
   metadata = {
     ssh_authorized_keys = var.ssh_public_key == null ? "" : var.ssh_public_key
-    user_data = base64encode(format("#!/bin/bash\n%s\n%s\n%s",
+    user_data = base64encode(format("#!/bin/bash\n%s\n%s\n%s\n%s",
       "TOBEDELETED=${var.extirpate_compartment}",
       "EXT_TAG=${local.key}=${var.extirpater_tag[local.key]}",
+      file("./scripts/common.env"),
     file("./scripts/bootstrap.sh")))
   }
 

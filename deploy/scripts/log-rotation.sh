@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-LOGDIR="/var/log/ociextirpater"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=/dev/null
+source "$SCRIPT_DIR/common.env"
 
-# Keep logs this many days uncompressed.
-COMPRESS_AFTER_DAYS=30
-
-# Delete compressed logs older than this many days.
-RETENTION_DAYS=365
+: "${LOG_DIR:?LOG_DIR must be set by common.env}"
+: "${COMPRESS_AFTER_DAYS:?COMPRESS_AFTER_DAYS must be set by common.env}"
+: "${RETENTION_DAYS:?RETENTION_DAYS must be set by common.env}"
 
 today="$(date +%F)"
 compress_before="$(date -d "-${COMPRESS_AFTER_DAYS} days" +%F)"
 delete_before="$(date -d "-${RETENTION_DAYS} days" +%F)"
 
-[ -d "$LOGDIR" ] || exit 0
+[ -d "$LOG_DIR" ] || exit 0
 
 if (( RETENTION_DAYS <= COMPRESS_AFTER_DAYS )); then
     echo "RETENTION_DAYS must be greater than COMPRESS_AFTER_DAYS" >&2
@@ -24,7 +24,7 @@ fi
 # Example:
 #   if today is 2026-06-01, logs dated 2026-05-02 or newer stay uncompressed.
 #   logs dated 2026-05-01 or older are compressed.
-find "$LOGDIR" -maxdepth 1 -type f -name '????-??-??.log' -print0 |
+find "$LOG_DIR" -maxdepth 1 -type f -name '????-??-??.log' -print0 |
 while IFS= read -r -d '' file; do
     base="$(basename "$file")"
 
@@ -39,7 +39,7 @@ while IFS= read -r -d '' file; do
 done
 
 # Delete compressed logs older than RETENTION_DAYS.
-find "$LOGDIR" -maxdepth 1 -type f -name '????-??-??.log.gz' -print0 |
+find "$LOG_DIR" -maxdepth 1 -type f -name '????-??-??.log.gz' -print0 |
 while IFS= read -r -d '' file; do
     base="$(basename "$file")"
 

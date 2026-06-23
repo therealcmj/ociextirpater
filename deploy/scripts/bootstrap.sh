@@ -4,15 +4,22 @@ IFS=$'\n\t'
 umask 0027
 [ "$(id -u)" -eq 0 ] || { echo "Run as root"; exit 1; }
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/common.env" ]; then
+  # shellcheck source=/dev/null
+  source "$SCRIPT_DIR/common.env"
+fi
+
 # $TOBEDELETED required to be set
 if [ -v TOBEDELETED ]; then echo "#### Extirpate Compartment $TOBEDELETED ####"
 else echo "#### ERROR: No compartment set ####" && exit 1
 fi
 
+: "${LOG_DIR:?LOG_DIR must be set by common.env or cloud-init user_data}"
+: "${EXT_DIR:?EXT_DIR must be set by common.env or cloud-init user_data}"
+
 # Variables
-EXT_DIR=/usr/local/ociextirpater
 VENV=$EXT_DIR/.venv
-LOG_DIR=/var/log/ociextirpater
 MAX_ATTEMPTS=5
 TIMEOUT=5
 USER=extirpate
@@ -92,6 +99,10 @@ echo "#### Setting Executables: $EXT_DIR/deploy/scripts/log-rotation.sh ####"
 chown root:$USER $EXT_DIR/deploy/scripts/log-rotation.sh
 chmod 750 $EXT_DIR/deploy/scripts/log-rotation.sh
 
+echo "#### Setting Permissions: $EXT_DIR/deploy/scripts/common.env ####"
+chown root:$USER $EXT_DIR/deploy/scripts/common.env
+chmod 640 $EXT_DIR/deploy/scripts/common.env
+
 echo "#### Complete ####"
 
 # Tested with Python 3.9.21
@@ -112,8 +123,8 @@ echo "#### Making Log Directory: $LOG_DIR ####"
 install -d -o "$USER" -g "$USER" -m 2750 "$LOG_DIR"
 if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce)" != "Disabled" ]; then
   command -v semanage >/dev/null 2>&1 || { if [ "${PKG_MGR:-}" = "dnf" ]; then attempt_with_retry dnf -y install policycoreutils-python-utils || true; else attempt_with_retry yum -y install policycoreutils-python-utils || true; fi; }
-  semanage fcontext -a -t var_log_t '/var/log/ociextirpater(/.*)?' || true
-  restorecon -Rv /var/log/ociextirpater || true
+  semanage fcontext -a -t var_log_t "${LOG_DIR}(/.*)?" || true
+  restorecon -Rv "$LOG_DIR" || true
 fi
 echo "#### Complete ####"
 
@@ -121,7 +132,7 @@ echo "#### Setting Crontab ####"
 CRON_TMP=$(mktemp)
 {
   echo "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$VENV/bin"
-  echo "0 0 * * * $EXT_DIR/deploy/scripts/daily.sh $TOBEDELETED $LOG_DIR $EXT_TAG"
+  echo "0 0 * * * $EXT_DIR/deploy/scripts/daily.sh $TOBEDELETED $EXT_TAG"
   echo "0 0 * * * $EXT_DIR/deploy/scripts/log-rotation.sh"
 } > "$CRON_TMP"
 crontab -u $USER "$CRON_TMP"
