@@ -11,6 +11,8 @@ class genaiclient( OCIClient ):
     # clientClass = oci.identity.identity_client.IdentityClient
     compositeClientClass = oci.generative_ai.generative_ai_client_composite_operations.GenerativeAiClientCompositeOperations
 
+    check_service_for_regional_availability = True
+
     # TODO: go through and figure out which function_delete's need to be changed to c_
     # to allow the cluster delete to succeed immediately
     objects = [
@@ -125,35 +127,41 @@ class genaiclient( OCIClient ):
     ]
 
     def __init__(self,config):
-        # from oci.retry import NoneRetryStrategy, retry_checkers
+        from oci.retry import NoneRetryStrategy, retry_checkers
         super().__init__(config)
 
-        rs = RetryStrategyBuilder().add_max_attempts(max_attempts=1) \
-            .add_total_elapsed_time(total_elapsed_time_seconds=10) \
-            .get_retry_strategy()
-            # .add_service_error_check(service_error_retry_config=retry_checkers.RETRYABLE_STATUSES_AND_CODES,
-            #                         service_error_retry_on_any_5xx=False) \
+        #TODO: move service availability checking up to _init_regional_client() in OCIClient
+        #      that way it can be applied to all clients that have check_service_for_regional_availability = True
+        #      without needing to duplicate this code in each client class
+        rs = RetryStrategyBuilder(
+            max_attempts=1,
+            total_elapsed_time_seconds=10,
+            service_error_retry_on_any_5xx=False
+        ).get_retry_strategy()
 
         tenant_id = config.ociconfig['tenancy']
         for k in sorted(list(self.clients.keys())):
             logging.debug("Checking service availability in region {}".format(k))
             try:
                 client = self.clients[k]
-                # o = urlsplit(client.base_client._endpoint)
+                client.base_client.update_endpoint_template_for_options()
+                o = urlsplit(client.base_client.get_endpoint())
                 # and then get the hostname out
-                # hn = o.hostname
-                # logging.debug("Attempting to resolve hostname {} for service in region {}".format(hn, k))
-                # ip = socket.gethostbyname(hn)
+                hn = o.hostname
+                logging.debug("Attempting to resolve hostname {} for service in region {}".format(hn, k))
+                ip = socket.gethostbyname(hn)
+                logging.debug("Successfully resolved hostname {} to IP {} for service in region {}".format(hn, ip, k))
 
-                f = getattr(client, "list_work_requests", {"retry_strategy": rs})
+                f = getattr(client, "list_work_requests")
                 logging.debug("Calling list_work_requests for region {} to check service availability".format(k))
-                response = f(tenant_id, limit=1)
+                response = f(tenant_id, limit=1, retry_strategy=rs)
                 if response.status != 200:
                     raise Exception("Non-200 response")
                 else:
                     logging.info("Service appears to be available in region {}".format(k))
             except Exception as e:
                 logging.info("Service does NOT appear to be available in region {}. That region will be skipped".format(k))
+                logging.debug("Error details: {}".format(str(e)))
                 self.clients.pop(k)
 
         logging.debug("Finished checking service availability in regions. Final regions with service available: {}".format(list(self.clients.keys())))
