@@ -214,10 +214,21 @@ class OCIClient:
                         logging.info(found_object)
                 else:
                     try:
-                        logging.info("{} with OCID {} / name '{}' is in state {}".format(object["name_singular"],
-                                                                                         found_object.id,
-                                                                                         found_object.display_name,
-                                                                                         found_object.lifecycle_state))
+                        printname = None
+                        if hasattr(found_object,"display_name"):
+                            printname = found_object.display_name
+                        elif hasattr(found_object,"name"):
+                            printname = found_object.name
+                        else:
+                            # if it's missing a name or display name then raise an exception to let the catch block below note it to the user
+                            raise Exception
+
+                        infoline = f"{object["name_singular"]} with OCID {found_object.id} / name '{printname}'"
+                        if hasattr(found_object,"lifecycle_state"):
+                            infoline += f" is in state {found_object.lifecycle_state}"
+
+                        logging.info(infoline)
+                                             
                     except Exception as e:
                         logging.error("Exception logging one line description of object - please open an issue on GitHub")
                         logging.info(found_object)
