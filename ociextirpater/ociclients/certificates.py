@@ -132,26 +132,22 @@ class certificates( OCIClient ):
 
 
     def findAllInCompartment(self, region, o, this_compartment, **kwargs):
+        # Certificates related list_ functions take the compartment ID as a kwarg rather than as a direct param
+        # this alternative implementation handles that        
+
         f = getattr((self.clients[region]), o["function_list"])
 
         kwargs_list = {}
-        # this isn't a thing for anything in the certificates client class.
-        # But leaving here as a prototype if things change in the future.
-        # if "kwargs_list" in o:
-        #     kwargs_list = o.get("kwargs_list", {})
-        
+        # this isn't currently a thing for anything in the certificates client class.
+        # But leaving here in case things change in the future.
+        if "kwargs_list" in o:
+            kwargs_list = o.get("kwargs_list", {})
+
         kwargs_list["compartment_id"] = this_compartment
         
         if o["name_plural"] == "Certificate Associations":
             logging.debug("Certificate Associations cannot be deleted directly. We are only reporting them out here for visibility.")
-        else:
-            kwargs_list["lifecycle_state"] = "ACTIVE"
 
         return oci.pagination.list_call_get_all_results(
             f,
             **kwargs_list).data
-    
-            # **{
-            #     "compartment_id": this_compartment,
-            #     "lifecycle_state": "ACTIVE"
-            # }).data
