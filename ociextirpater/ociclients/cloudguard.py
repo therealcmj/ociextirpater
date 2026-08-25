@@ -60,7 +60,7 @@ class cloudguard( OCIClient ):
         {
             "name_singular"      : "Cloud Guard Security Recipe",
             "name_plural"        : "Cloud Guard Security Recipes",
-            "check2delete"       : lambda recipe: hasattr(recipe, "owner") and recipe.owner != "ORACLE",
+            "check2delete"       : lambda recipe: hasattr(recipe, "owner") and recipe.owner != "ORACLE" and recipe.lifecycle_state != "DELETED",
 
             "function_list"      : "list_security_recipes",
             "function_delete"    : "delete_security_recipe",
