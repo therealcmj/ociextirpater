@@ -139,6 +139,13 @@ class datascience( OCIClient ):
             "name_plural"       : "Schedules",
             "function_list"     : "list_schedules",
             "function_delete"   : "delete_schedule"
+        },
+
+        {
+            "name_singular"     : "Compute Target",
+            "name_plural"       : "Compute Targets",
+            "function_list"     : "list_compute_targets",
+            "function_delete"   : "delete_compute_target"
         }
 
         # Things that we don't need to delete explicitly
