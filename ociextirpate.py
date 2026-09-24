@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from datetime import datetime,timedelta
-import io
 import importlib
 import logging
 
@@ -73,17 +72,6 @@ def extirpate():
         except Exception as e:
             logging.error("Exception caught")
             logging.error(e)
-
-
-def handler(ctx, data: io.BytesIO = None):
-
-    extirpate()
-    from fdk import response
-
-    return response.Response(
-        ctx, response_data='Finished extirpating',
-        headers={"Content-Type": "text/plain"}
-    )
 
 
 if __name__ == '__main__':

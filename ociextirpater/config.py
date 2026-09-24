@@ -51,7 +51,7 @@ class config:
 
     identity_client = None
 
-    var_prefix = 'EXTFN'
+    var_prefix = 'EXTIRPATER'
 
     # we work through these sequentially in the order specified
     # that doesn't make much of a difference until you get to things like networking
@@ -160,7 +160,8 @@ class config:
         self.regions = []
         self.identity_client = None
         self.categories_to_delete = list(type(self).categories_to_delete)
-        args = self.get_args() if not os.getenv(f'{self.var_prefix}_RESOURCE_PRINCIPAL') else self.make_namespace()
+        self.env_prefix = os.getenv('EXTIRPATER_PREFIX', self.var_prefix)
+        args = self.get_args()
         args = self.get_env_vars(args)
 
         valid = self.validate(args)
@@ -178,13 +179,14 @@ class config:
         parser.add_argument('-cp', default="DEFAULT", dest='config_profile', help='Config Profile inside the config file')
         parser.add_argument('-ip', action='store_true', default=False, dest='is_instance_principal', help='Use Instance Principals for Authentication')
         parser.add_argument('-dt', action='store_true', default=False, dest='is_delegation_token', help='Use Delegation Token for Authentication')
+        parser.add_argument('-oke', '--oke-workload-identity', action='store_true', default=False, dest='is_oke_workload_identity', help='Use OKE Workload Identity for Authentication')
         parser.add_argument('-log', dest='log_file', help='output log file')
         parser.add_argument('-force', action='store_true', default=False, dest='force', help='force delete without confirmation')
         parser.add_argument('-debug', action='store_true', default=False, dest='debug', help='Enable debug')
         parser.add_argument('-skip_tagged', dest='skip_tagged', help='Skip resources tagged specific ways [namespace.]name[=value]')
         parser.add_argument('-skip_delete_compartment', action='store_true', default=False, dest='skip_delete_compartment', help='Skip Deleting the compartment at the end')
         parser.add_argument("-rg", dest='regions', help="Regions to delete comma separated (defaults to all subscribed regions)")
-        parser.add_argument("-c", dest='compartment', action="append", required=True, help="top level compartment id to delete")
+        parser.add_argument("-c", dest='compartment', action="append", help="top level compartment id to delete")
         parser.add_argument("--entire-tenancy", dest="entire_tenancy", default=False, action="store_true", help=argparse.SUPPRESS)
         parser.add_argument("-o", dest="objects",help="Object catagories to work on. See docs for info")
         parser.add_argument("-t", dest="threads",default=-1, type=int, help="Number of threads")
@@ -225,7 +227,7 @@ class config:
         return cmd
     
     def get_env_vars(self, cmd):
-        prefix = os.getenv('EXTIRPATER_PREFIX', self.var_prefix)
+        prefix = self.env_prefix
 
         # Required
         # The compartment variable needs to be a list derived from a comma separated string
@@ -244,8 +246,8 @@ class config:
         cmd.debug = True if os.getenv(f'{prefix}_DEBUG') or cmd.debug else False
         cmd.skip_delete_compartment = True if os.getenv(f'{prefix}_SKIP_DELETE_COMPARTMENT') else False
 
-        # For OCI Functions
-        cmd.is_resource_principal = True if os.getenv(f'{prefix}_RESOURCE_PRINCIPAL') else False
+        # For Oracle Kubernetes Engine workloads.
+        cmd.is_oke_workload_identity = True if os.getenv(f'{prefix}_OKE_WORKLOAD_IDENTITY') or cmd.is_oke_workload_identity else False
 
         return cmd
     
@@ -255,24 +257,6 @@ class config:
 
         return (True, '')
     
-    def make_namespace(self) -> argparse.Namespace:
-        ns = argparse.Namespace()
-
-        ns.compartment = None
-        ns.config_file = None
-        ns.config_profile = None
-        ns.log_file = None
-        ns.regions = None
-        ns.objects = None
-        ns.threads = -1
-        ns.is_instance_principal = None
-        ns.is_delegation_token = None
-        ns.force = None
-        ns.debug = None
-        ns.skip_delete_compartment = None
-
-        return ns
-
     def process(self, cmd):
 
         # process the logging arguments first
@@ -308,19 +292,24 @@ class config:
                 logging.error(errTxt)
                 raise Exception(errTxt)
             
-        elif cmd.is_resource_principal:
-            logging.debug("Authenticating with Resource Principal")
+        elif cmd.is_oke_workload_identity:
+            logging.debug("Authenticating with OKE Workload Identity")
             try:
-                self.signer = oci.auth.signers.get_resource_principals_signer()
+                self.signer = oci.auth.signers.get_oke_workload_identity_resource_principal_signer()
+                tenancy = os.getenv(f'{self.env_prefix}_TENANCY')
+                if not tenancy:
+                    raise ValueError(f'{self.env_prefix}_TENANCY must be set when using OKE Workload Identity')
+                if not self.signer.region:
+                    raise ValueError('OCI_RESOURCE_PRINCIPAL_REGION must be set by the OKE workload identity environment')
                 self.ociconfig = {
                     'region': self.signer.region,
-                    'tenancy': self.signer.tenancy_id
+                    'tenancy': tenancy
                 }
 
-            except Exception:
-                errTxt = "Error obtaining resource princiapl signer, aborting"
+            except Exception as error:
+                errTxt = "Error obtaining OKE workload identity signer, aborting"
                 logging.error(errTxt)
-                raise Exception(errTxt)
+                raise Exception(errTxt) from error
 
         elif cmd.is_delegation_token:
             logging.debug("Authenticating with Delegation Token")
