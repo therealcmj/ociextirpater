@@ -223,7 +223,7 @@ class OCIClient:
                             # if it's missing a name or display name then raise an exception to let the catch block below note it to the user
                             raise Exception
 
-                        infoline = f"{object["name_singular"]} with OCID {found_object.id} / name '{printname}'"
+                        infoline = f"{object['name_singular']} with OCID {found_object.id} / name '{printname}'"
                         if hasattr(found_object,"lifecycle_state"):
                             infoline += f" is in state {found_object.lifecycle_state}"
 

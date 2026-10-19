@@ -1,0 +1,23 @@
+.git
+.github
+.venv
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Deployment artifacts and local configuration are not application runtime code.
+deploy/
+func.yaml
+*.log
+.env
+.env.*
+*.pem
+*.key
+id_rsa*
+.oci/

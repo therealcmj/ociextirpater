@@ -76,7 +76,7 @@ Check out my blog post at
 
 ### Available Arguments
 ```
-usage: ociextirpate.py [-h] [-cf CONFIG_FILE] [-cp CONFIG_PROFILE] [-ip] [-dt] [-log LOG_FILE] [-force]
+usage: ociextirpate.py [-h] [-cf CONFIG_FILE] [-cp CONFIG_PROFILE] [-ip] [-dt] [-oke] [-log LOG_FILE] [-force]
                        [-debug] [-skip_tagged SKIP_TAGGED] [-skip_delete_compartment] [-rg REGIONS]
                        [-c COMPARTMENT] [-o OBJECTS] [-t THREADS]
 
@@ -86,6 +86,8 @@ options:
   -cp CONFIG_PROFILE    Config Profile inside the config file
   -ip                   Use Instance Principals for Authentication
   -dt                   Use Delegation Token for Authentication
+  -oke, --oke-workload-identity
+                        Use OKE Workload Identity for Authentication
   -log LOG_FILE         output log file
   -force                force delete without confirmation
   -debug                Enable debug
