@@ -66,6 +66,7 @@ class config:
                                 "opsinsight",
                                 "events",
                                 "notifications",
+                                "email",
                                 "serviceconnector",
                                 "loganalytics",
                                 "ocilogging",
