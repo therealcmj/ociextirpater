@@ -119,6 +119,7 @@ class config:
                                 "certificates",
                                 "compute",
                                 "cache",
+                                "cacheusers",
                                 "computepool",
                                 "computemanagement",
                                 "containerinstance",
